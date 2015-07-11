@@ -18,6 +18,12 @@ namespace splatcrawler
 
         protected override void OnStart(string[] args)
         {
+            Start();
+        }
+
+        public void Start()
+        {
+            Console.WriteLine("this works");
         }
 
         protected override void OnStop()

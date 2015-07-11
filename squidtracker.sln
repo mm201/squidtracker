@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "splatcrawler", "splatcrawle
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "library", "library\library.csproj", "{43B74175-D349-4FE9-A600-A560F927CCC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "squidtracker", "WebApplication1\squidtracker.csproj", "{4D3F7E3C-352D-4148-9F55-93F542C0DBBF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "squidtracker", "squidtracker\squidtracker.csproj", "{66BA8587-5B0C-4D74-82C2-E9001E54D8F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{43B74175-D349-4FE9-A600-A560F927CCC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43B74175-D349-4FE9-A600-A560F927CCC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43B74175-D349-4FE9-A600-A560F927CCC5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4D3F7E3C-352D-4148-9F55-93F542C0DBBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4D3F7E3C-352D-4148-9F55-93F542C0DBBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4D3F7E3C-352D-4148-9F55-93F542C0DBBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4D3F7E3C-352D-4148-9F55-93F542C0DBBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66BA8587-5B0C-4D74-82C2-E9001E54D8F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66BA8587-5B0C-4D74-82C2-E9001E54D8F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66BA8587-5B0C-4D74-82C2-E9001E54D8F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66BA8587-5B0C-4D74-82C2-E9001E54D8F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
