@@ -29,14 +29,24 @@ namespace splatcrawler
         public void Start()
         {
             // todo: thread me
-            DateTime lastPollTime = DateTime.MinValue;
+            DateTime nextPollTime = DateTime.MinValue;
             while (true)
             {
                 DateTime now = DateTime.Now;
-                if (lastPollTime.AddMinutes(10) < now)
+                if (nextPollTime < now)
                 {
-                    // 10 minutes passed, so poll
-                    lastPollTime = now;
+                    // 30 minutes passed, so poll
+                    const int DELAY_SECONDS = 70;
+                    DateTime nextAccurate = now.AddMinutes(30).AddSeconds(-DELAY_SECONDS); // next poll time before rounding
+                    nextPollTime = new DateTime(
+                        nextAccurate.Year,
+                        nextAccurate.Month, 
+                        nextAccurate.Day, 
+                        nextAccurate.Hour,
+                        nextAccurate.Minute >= 30 ? 30 : 0, 
+                        0, 
+                        nextAccurate.Kind).AddSeconds(DELAY_SECONDS);
+
                     using (WebClient wc = new WebClient())
                     {
                         wc.Encoding = Encoding.UTF8;
@@ -83,8 +93,9 @@ namespace splatcrawler
 
                 for (int x = 1; x < records.Length; x++)
                 {
-                    Database.InsertLeaderboard(conn, records[x]);
-                    Console.WriteLine("Inserted leaderboard for {0} to {1}", records[x].datetime_term_begin, records[x].datetime_term_end);
+                    bool success = Database.InsertLeaderboard(conn, records[x]);
+                    if (success) Console.WriteLine("Inserted leaderboard for {0} to {1}.", records[x].datetime_term_begin, records[x].datetime_term_end);
+                    else Console.WriteLine("Leaderboard for {0} to {1} already in database.", records[x].datetime_term_begin, records[x].datetime_term_end);
                 }
 
                 conn.Close();
