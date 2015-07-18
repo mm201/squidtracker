@@ -34,16 +34,61 @@ namespace SquidTracker.Data
             }
         }
 
-        public static void LogStagesInfo(MySqlConnection conn, String data)
+        private static void LogNetRequest(MySqlConnection conn, String data, String table)
         {
-            conn.ExecuteNonQuery("INSERT INTO squid_logs_stages_info (date, data) " +
+            conn.ExecuteNonQuery("INSERT INTO " + table + " (date, data) " +
                 "VALUES (UTC_TIMESTAMP(), @data)",
                 new MySqlParameter("@data", data));
+        }
+
+        public static void LogStagesInfo(MySqlConnection conn, String data)
+        {
+            LogNetRequest(conn, data, "squid_logs_stages_info");
         }
 
         public static void LogStagesInfo(String data)
         {
             WithConnection(conn => LogStagesInfo(conn, data));
+        }
+
+        public static void LogFesInfo(MySqlConnection conn, String data)
+        {
+            LogNetRequest(conn, data, "squid_logs_fes_info");
+        }
+
+        public static void LogFesInfo(String data)
+        {
+            WithConnection(conn => LogFesInfo(conn, data));
+        }
+
+        public static void LogFesResult(MySqlConnection conn, String data)
+        {
+            LogNetRequest(conn, data, "squid_logs_fes_result");
+        }
+
+        public static void LogFesResult(String data)
+        {
+            WithConnection(conn => LogFesResult(conn, data));
+        }
+
+        public static void LogFesContributionRanking(MySqlConnection conn, String data)
+        {
+            LogNetRequest(conn, data, "squid_logs_contribution_ranking");
+        }
+
+        public static void LogFesContributionRanking(String data)
+        {
+            WithConnection(conn => LogFesContributionRanking(conn, data));
+        }
+
+        public static void LogFesRecentResults(MySqlConnection conn, String data)
+        {
+            LogNetRequest(conn, data, "squid_logs_recent_results");
+        }
+
+        public static void LogFesRecentResults(String data)
+        {
+            WithConnection(conn => LogFesRecentResults(conn, data));
         }
 
         public static bool InsertLeaderboard(MySqlConnection conn, StagesInfoRecord leaderboard)
