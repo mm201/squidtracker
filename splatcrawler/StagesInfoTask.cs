@@ -94,22 +94,47 @@ namespace SquidTracker.Crawler
                 if (records == null || records.Length == 0) return records;
 
                 StagesInfoRecord record = records[0];
+                int newStages = 0, newWeapons = 0,
+                    newShoes = 0, newClothes = 0, newHead = 0;
                 // scrape all the identifiers we can
                 foreach (StageRecord sr in record.stages)
                 {
-                    if (sr != null) Database.GetStageId(conn, sr);
+                    bool isNew = false;
+                    if (sr != null) Database.GetStageId(conn, sr, out isNew);
+                    if (isNew) newStages++;
                 }
+
                 foreach (RankingRecord rr in record.ranking)
                 {
-                    if (rr.weapon_id != null) Database.GetWeaponId(conn, rr.weapon_id);
-                    if (rr.gear_shoes_id != null) Database.GetShoesId(conn, rr.gear_shoes_id);
-                    if (rr.gear_clothes_id != null) Database.GetShirtId(conn, rr.gear_clothes_id);
-                    if (rr.gear_head_id != null) Database.GetHatId(conn, rr.gear_head_id);
+                    bool isNew = false;
+                    if (rr.weapon_id != null) Database.GetWeaponId(conn, rr.weapon_id, out isNew);
+                    if (isNew) newWeapons++;
+
+                    isNew = false;
+                    if (rr.gear_shoes_id != null) Database.GetShoesId(conn, rr.gear_shoes_id, out isNew);
+                    if (isNew) newShoes++;
+                    
+                    isNew = false;
+                    if (rr.gear_clothes_id != null) Database.GetShirtId(conn, rr.gear_clothes_id, out isNew);
+                    if (isNew) newClothes++;
+                    
+                    isNew = false;
+                    if (rr.gear_head_id != null) Database.GetHatId(conn, rr.gear_head_id, out isNew);
+                    if (isNew) newHead++;
                 }
 
                 for (int x = 1; x < records.Length; x++)
                 {
-                    bool success = Database.InsertLeaderboard(conn, records[x]);
+                    int thisNewStages, thisNewWeapons,
+                        thisNewShoes, thisNewClothes, thisNewHead;
+                    bool success = Database.InsertLeaderboard(conn, records[x],
+                        out thisNewStages, out thisNewWeapons, out thisNewShoes, out thisNewClothes, out thisNewHead);
+                    newStages += thisNewStages;
+                    newWeapons += thisNewWeapons;
+                    newShoes += thisNewShoes;
+                    newClothes += thisNewClothes;
+                    newHead += thisNewHead;
+
                     if (success)
                     {
                         if (pollType == PollTypes.Fresh) Console.WriteLine();
@@ -117,8 +142,19 @@ namespace SquidTracker.Crawler
                     }
                     else if (pollType != PollTypes.Fresh) Console.WriteLine("Already have leaderboard for {0} to {1}.", records[x].datetime_term_begin, records[x].datetime_term_end);
                 }
-
                 conn.Close();
+
+                if (newStages == 1) Console.WriteLine("Inserted 1 new stage.");
+                if (newStages > 1) Console.WriteLine("Inserted {0} new stages.", newStages);
+                if (newWeapons == 1) Console.WriteLine("Inserted 1 new weapon.");
+                if (newWeapons > 1) Console.WriteLine("Inserted {0} new weapons.", newWeapons);
+                if (newShoes == 1) Console.WriteLine("Inserted 1 new shoe.");
+                if (newShoes > 1) Console.WriteLine("Inserted {0} new shoes.", newShoes);
+                if (newClothes == 1) Console.WriteLine("Inserted 1 new shirt.");
+                if (newClothes > 1) Console.WriteLine("Inserted {0} new shirts.", newClothes);
+                if (newHead == 1) Console.WriteLine("Inserted 1 new hat.");
+                if (newHead > 1) Console.WriteLine("Inserted {0} new hats.", newHead);
+
                 return records;
             }
         }
