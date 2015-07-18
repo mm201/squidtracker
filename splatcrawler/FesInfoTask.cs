@@ -36,22 +36,34 @@ namespace SquidTracker.Crawler
                 {
                     fes_info = wc.DownloadString("http://s3-ap-northeast-1.amazonaws.com/splatoon-data.nintendo.net/fes_info.json");
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
                 try
                 {
                     fes_result = wc.DownloadString("http://s3-ap-northeast-1.amazonaws.com/splatoon-data.nintendo.net/fes_result.json");
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
                 try
                 {
-                recent_results = wc.DownloadString("http://s3-ap-northeast-1.amazonaws.com/splatoon-data.nintendo.net/recent_results.json");
+                    recent_results = wc.DownloadString("http://s3-ap-northeast-1.amazonaws.com/splatoon-data.nintendo.net/recent_results.json");
                 }
-                    catch { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
                 try
                 {
                     contribution_ranking = wc.DownloadString("http://s3-ap-northeast-1.amazonaws.com/splatoon-data.nintendo.net/contribution_ranking.json");
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
             }
 
             using (MySqlConnection conn = Database.CreateConnection())

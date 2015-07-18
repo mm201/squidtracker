@@ -39,10 +39,24 @@ namespace splatcrawler
 
             while (true)
             {
-                DateTime now = DateTime.UtcNow;
-                foreach (PollTask task in tasks.Where(t => t.NextPollTime <= now))
+                try
                 {
-                    task.Run();
+                    DateTime now = DateTime.UtcNow;
+                    foreach (PollTask task in tasks.Where(t => t.NextPollTime <= now))
+                    {
+                        try
+                        {
+                            task.Run();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
                 }
                 Thread.Sleep(1000);
             }

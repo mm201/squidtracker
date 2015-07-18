@@ -93,20 +93,18 @@ namespace SquidTracker.Crawler
 
                 if (records == null || records.Length == 0) return records;
 
+                StagesInfoRecord record = records[0];
+                // scrape all the identifiers we can
+                foreach (StageRecord sr in record.stages)
                 {
-                    StagesInfoRecord record = records[0];
-                    // scrape all the identifiers we can
-                    foreach (StageRecord sr in record.stages)
-                    {
-                        if (sr != null) Database.GetStageId(conn, sr);
-                    }
-                    foreach (RankingRecord rr in record.ranking)
-                    {
-                        if (rr.weapon_id != null) Database.GetWeaponId(conn, rr.weapon_id);
-                        if (rr.gear_shoes_id != null) Database.GetShoesId(conn, rr.gear_shoes_id);
-                        if (rr.gear_clothes_id != null) Database.GetShirtId(conn, rr.gear_clothes_id);
-                        if (rr.gear_head_id != null) Database.GetHatId(conn, rr.gear_head_id);
-                    }
+                    if (sr != null) Database.GetStageId(conn, sr);
+                }
+                foreach (RankingRecord rr in record.ranking)
+                {
+                    if (rr.weapon_id != null) Database.GetWeaponId(conn, rr.weapon_id);
+                    if (rr.gear_shoes_id != null) Database.GetShoesId(conn, rr.gear_shoes_id);
+                    if (rr.gear_clothes_id != null) Database.GetShirtId(conn, rr.gear_clothes_id);
+                    if (rr.gear_head_id != null) Database.GetHatId(conn, rr.gear_head_id);
                 }
 
                 for (int x = 1; x < records.Length; x++)
