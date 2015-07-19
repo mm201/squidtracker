@@ -1,0 +1,23 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Main.master.cs" Inherits="SquidTracker.Web.Main" %>
+<%@ Register TagPrefix="squid" Namespace="SquidTracker.Web" Assembly="SquidTracker.Web" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+    <asp:ContentPlaceHolder ID="cpHead" runat="server" />
+    <link rel="shortcut icon" href="~/favicon.ico" type="image/vnd.microsoft.icon" />
+
+    <squid:RequireCss Key="main" CssUrl="~/css/main.css" runat="server" />
+    <squid:RequireScript Key="jquery" ScriptUrl="~/scripts/jquery-1.11.1.min.js" runat="server" />
+    <squid:RequireScript Key="retina" After="jquery" ScriptUrl="~/scripts/retina.js" runat="server" />
+</head>
+<body>
+    <div>
+        <asp:ContentPlaceHolder ID="cpMain" runat="server">
+        
+        </asp:ContentPlaceHolder>
+    </div>
+</body>
+</html>

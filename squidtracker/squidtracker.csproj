@@ -57,12 +57,40 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="css\main.css" />
+    <Content Include="Default.aspx" />
+    <Content Include="scripts\jquery-1.11.1.min.js" />
+    <Content Include="scripts\retina.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Default.aspx.cs">
+      <DependentUpon>Default.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Default.aspx.designer.cs">
+      <DependentUpon>Default.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Main.master.cs">
+      <DependentUpon>Main.master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Main.master.designer.cs">
+      <DependentUpon>Main.master</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Common.cs" />
+    <Compile Include="src\DependencyNode.cs" />
+    <Compile Include="src\OnceTemplate.cs" />
+    <Compile Include="src\RequireCss.cs" />
+    <Compile Include="src\RequireLinkBase.cs" />
+    <Compile Include="src\RequireScript.cs" />
+    <Compile Include="src\RetinaImage.cs" />
+    <Compile Include="src\RetinaImageBase.cs" />
+    <Compile Include="src\WebException.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Main.master" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
