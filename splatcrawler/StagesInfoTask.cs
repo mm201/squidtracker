@@ -48,8 +48,10 @@ namespace SquidTracker.Crawler
                 const int FAST_POLL_RATE = 5; // seconds between polls
                 TimeZoneInfo tzi = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
                 StagesInfoRecord record = records[0];
-                DateTime endTimeUtc = TimeZoneInfo.ConvertTimeToUtc(record.datetime_term_end, tzi).AddSeconds(-PRE_EMPT);
-                if (endTimeUtc < now)
+                DateTime endTimeUtc = TimeZoneInfo.ConvertTimeToUtc(record.datetime_term_end, tzi);
+                DateTime endTimePreEmpt = endTimeUtc.AddSeconds(-PRE_EMPT);
+                DateTime startTimeUtc = TimeZoneInfo.ConvertTimeToUtc(record.datetime_term_begin, tzi);
+                if (endTimePreEmpt < now)
                 {
                     // received data is stale so we are polling
                     NextPollTime = now.AddSeconds(FAST_POLL_RATE);
@@ -61,13 +63,31 @@ namespace SquidTracker.Crawler
 
                     freshShortUpdate = true;
                 }
-                else if (endTimeUtc < NextPollTime)
+                else if (endTimePreEmpt < NextPollTime)
                 {
                     // end of rotation comes sooner than ambient polling
-                    NextPollTime = endTimeUtc;
+                    NextPollTime = endTimePreEmpt;
                     Console.WriteLine("Polling for fresh maps at {0:G}.", NextPollTime.ToLocalTime());
                     pollType = PollTypes.Fresh;
                     freshShortUpdate = false;
+                }
+                else if (startTimeUtc.AddHours(1) > now)
+                {
+                    // This is the first hour of a new leaderboard.
+                    // The leaderboard changes more rapidly early on, so we
+                    // poll more frequently to increase our chance of picking
+                    // up weapons/gear not already in the database.
+                    const int RAPID_POLL_INTERVAL = 10;
+                    nextAccurate = now.AddMinutes(RAPID_POLL_INTERVAL);
+                    int minute = (nextAccurate.Minute / RAPID_POLL_INTERVAL) * RAPID_POLL_INTERVAL;
+                    NextPollTime = new DateTime(
+                        nextAccurate.Year,
+                        nextAccurate.Month,
+                        nextAccurate.Day,
+                        nextAccurate.Hour,
+                        minute,
+                        0,
+                        nextAccurate.Kind);
                 }
                 else
                 {
