@@ -88,6 +88,8 @@ namespace SquidTracker.Crawler
                         minute,
                         0,
                         nextAccurate.Kind);
+                    Console.WriteLine("Next poll at {0:G}.", NextPollTime.ToLocalTime());
+                    freshShortUpdate = false;
                 }
                 else
                 {
