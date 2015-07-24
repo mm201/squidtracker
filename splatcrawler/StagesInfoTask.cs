@@ -110,8 +110,14 @@ namespace SquidTracker.Crawler
             {
                 conn.Open();
 
-                Database.LogStagesInfo(conn, data);
-                StagesInfoRecord[] records = GetStagesInfo(data);
+                StagesInfoRecord[] records = null;
+                try
+                {
+                    records = GetStagesInfo(data);
+                }
+                catch { }
+
+                Database.LogStagesInfo(conn, data, records != null);
 
                 if (records == null || records.Length == 0) return records;
 

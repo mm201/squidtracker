@@ -70,13 +70,13 @@ namespace SquidTracker.Crawler
             {
                 conn.Open();
                 if (fes_info != null)
-                    Database.LogFesInfo(conn, fes_info);
+                    Database.LogFesInfo(conn, fes_info, false);
                 if (fes_result != null)
-                    Database.LogFesResult(conn, fes_result);
+                    Database.LogFesResult(conn, fes_result, false);
                 if (recent_results != null)
-                    Database.LogFesRecentResults(conn, recent_results);
+                    Database.LogFesRecentResults(conn, recent_results, false);
                 if (contribution_ranking != null)
-                    Database.LogFesContributionRanking(conn, contribution_ranking);
+                    Database.LogFesContributionRanking(conn, contribution_ranking, false);
                 conn.Close();
             }
         }

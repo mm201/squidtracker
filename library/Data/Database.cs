@@ -34,61 +34,61 @@ namespace SquidTracker.Data
             }
         }
 
-        private static void LogNetRequest(MySqlConnection conn, String data, String table)
+        private static void LogNetRequest(MySqlConnection conn, String table, String data, bool isValid)
         {
             conn.ExecuteNonQuery("INSERT INTO " + table + " (date, data) " +
                 "VALUES (UTC_TIMESTAMP(), @data)",
                 new MySqlParameter("@data", data));
         }
 
-        public static void LogStagesInfo(MySqlConnection conn, String data)
+        public static void LogStagesInfo(MySqlConnection conn, String data, bool isValid)
         {
-            LogNetRequest(conn, data, "squid_logs_stages_info");
+            LogNetRequest(conn, "squid_logs_stages_info", data, isValid);
         }
 
-        public static void LogStagesInfo(String data)
+        public static void LogStagesInfo(String data, bool isValid)
         {
-            WithConnection(conn => LogStagesInfo(conn, data));
+            WithConnection(conn => LogStagesInfo(conn, data, isValid));
         }
 
-        public static void LogFesInfo(MySqlConnection conn, String data)
+        public static void LogFesInfo(MySqlConnection conn, String data, bool isValid)
         {
-            LogNetRequest(conn, data, "squid_logs_fes_info");
+            LogNetRequest(conn, "squid_logs_fes_info", data, isValid);
         }
 
-        public static void LogFesInfo(String data)
+        public static void LogFesInfo(String data, bool isValid)
         {
-            WithConnection(conn => LogFesInfo(conn, data));
+            WithConnection(conn => LogFesInfo(conn, data, isValid));
         }
 
-        public static void LogFesResult(MySqlConnection conn, String data)
+        public static void LogFesResult(MySqlConnection conn, String data, bool isValid)
         {
-            LogNetRequest(conn, data, "squid_logs_fes_result");
+            LogNetRequest(conn, "squid_logs_fes_result", data, isValid);
         }
 
-        public static void LogFesResult(String data)
+        public static void LogFesResult(String data, bool isValid)
         {
-            WithConnection(conn => LogFesResult(conn, data));
+            WithConnection(conn => LogFesResult(conn, data, isValid));
         }
 
-        public static void LogFesContributionRanking(MySqlConnection conn, String data)
+        public static void LogFesContributionRanking(MySqlConnection conn, String data, bool isValid)
         {
-            LogNetRequest(conn, data, "squid_logs_contribution_ranking");
+            LogNetRequest(conn, "squid_logs_contribution_ranking", data, isValid);
         }
 
-        public static void LogFesContributionRanking(String data)
+        public static void LogFesContributionRanking(String data, bool isValid)
         {
-            WithConnection(conn => LogFesContributionRanking(conn, data));
+            WithConnection(conn => LogFesContributionRanking(conn, data, isValid));
         }
 
-        public static void LogFesRecentResults(MySqlConnection conn, String data)
+        public static void LogFesRecentResults(MySqlConnection conn, String data, bool isValid)
         {
-            LogNetRequest(conn, data, "squid_logs_recent_results");
+            LogNetRequest(conn, "squid_logs_recent_results", data, isValid);
         }
 
-        public static void LogFesRecentResults(String data)
+        public static void LogFesRecentResults(String data, bool isValid)
         {
-            WithConnection(conn => LogFesRecentResults(conn, data));
+            WithConnection(conn => LogFesRecentResults(conn, data, isValid));
         }
 
         public static bool InsertLeaderboard(MySqlConnection conn, StagesInfoRecord leaderboard, out int newStages, out int newWeapons, out int newShoes, out int newClothes, out int newHead)
