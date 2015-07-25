@@ -28,12 +28,12 @@ namespace SquidTracker.Web
             StringBuilder builder = new StringBuilder();
             builder.Append("<script type=\"text/javascript\">");
 
-            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_stages"), "squidStages");
+            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_stages ORDER BY filename, identifier"), "squidStages");
             /*
-            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_gear_head"), "squidGearHead");
-            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_gear_clothes"), "squidGearClothes");
-            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_gear_shoes"), "squidGearShoes");
-            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_weapons"), "squidWeapons");
+            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_gear_head ORDER BY filename, identifier"), "squidGearHead");
+            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_gear_clothes ORDER BY filename, identifier"), "squidGearClothes");
+            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_gear_shoes ORDER BY filename, identifier"), "squidGearShoes");
+            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_weapons ORDER BY filename, identifier"), "squidWeapons");
             */
 
             builder.Append("</script>");
