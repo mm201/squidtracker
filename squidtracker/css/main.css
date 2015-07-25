@@ -1,1 +1,46 @@
-﻿
+﻿@import url(http://fonts.googleapis.com/css?family=Galindo);
+
+body
+{
+    background-color: #333333;
+    color: white;
+}
+
+.squidHeader
+{
+    color: #99ff33;
+    font-family: Galindo,sans-serif;
+    font-size: 32px;
+    text-align: center;
+}
+
+.squidHeader a
+{
+    color: #99ff33;
+    text-decoration: none;
+}
+
+.squidMain
+{
+    min-height: 400px;
+}
+
+.squidMapColumns
+{
+    overflow: hidden;
+}
+
+.squidMapColumns .squidLeftColumn, .squidMapColumns .squidRightColumn
+{
+    width: 300px;
+}
+
+.squidMapColumns .squidMainColumn
+{
+
+}
+
+.squidMapColumns .squidLeftColumn, .squidMapColumns .squidRightColumn
+{
+
+}

@@ -39,6 +39,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="MySql.Data">
+      <HintPath>..\packages\MySql.Data.6.9.7\lib\net40\MySql.Data.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -328,6 +331,19 @@
     <Content Include="images\weapons\wst_shot_triplequick00.png" />
     <Content Include="images\weapons\wst_shot_triplequick01.png" />
     <Content Include="scripts\jquery-1.11.1.min.js" />
+    <Content Include="scripts\knockout-3.3.0.debug.js" />
+    <Content Include="scripts\knockout-3.3.0.js" />
+    <Content Include="scripts\moment-timezone-utils.js" />
+    <Content Include="scripts\moment-timezone-with-data-2010-2020.js" />
+    <Content Include="scripts\moment-timezone-with-data-2010-2020.min.js" />
+    <Content Include="scripts\moment-timezone-with-data.js" />
+    <Content Include="scripts\moment-timezone-with-data.min.js" />
+    <Content Include="scripts\moment-timezone.js" />
+    <Content Include="scripts\moment-timezone.min.js" />
+    <Content Include="scripts\moment-with-locales.js" />
+    <Content Include="scripts\moment-with-locales.min.js" />
+    <Content Include="scripts\moment.js" />
+    <Content Include="scripts\moment.min.js" />
     <Content Include="scripts\retina.js" />
     <Content Include="Web.config" />
   </ItemGroup>
@@ -356,15 +372,26 @@
     <Compile Include="src\RetinaImage.cs" />
     <Compile Include="src\RetinaImageBase.cs" />
     <Compile Include="src\WebException.cs" />
+    <Compile Include="stages_info.ashx.cs">
+      <DependentUpon>stages_info.ashx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Main.master" />
+    <Content Include="stages_info.ashx" />
+    <Content Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
     <None Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\library\library.csproj">
+      <Project>{43b74175-d349-4fe9-a600-a560f927ccc5}</Project>
+      <Name>library</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

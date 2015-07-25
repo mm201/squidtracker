@@ -14,10 +14,26 @@
     <squid:RequireScript Key="retina" After="jquery" ScriptUrl="~/scripts/retina.js" runat="server" />
 </head>
 <body>
-    <div>
-        <asp:ContentPlaceHolder ID="cpMain" runat="server">
-        
-        </asp:ContentPlaceHolder>
+    <header class="squidHeader">
+        Squid Tracker
+    </header>
+    <div class="squidMain">
+        <asp:ContentPlaceHolder ID="cpMain" runat="server" />
     </div>
+
+    <nav class="squidNav">
+        <ul>
+            <li>
+                <asp:HyperLink ID="hlMain" NavigateUrl="~/" Text="Current stages" runat="server" />
+            </li>
+            <li>
+                <asp:HyperLink ID="hlHistory" NavigateUrl="~/" Text="Leaderboards &amp; history" runat="server" />
+            </li>
+            <li>
+                <asp:HyperLink ID="hlPush" NavigateUrl="~/" Text="Push notifications" runat="server" />
+            </li>
+        </ul>
+    </nav>
+
 </body>
 </html>
