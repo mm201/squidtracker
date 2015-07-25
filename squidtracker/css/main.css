@@ -4,13 +4,16 @@ body
 {
     background-color: #333333;
     color: white;
+    font-family: Arial,Helvetica,sans-serif;
+    font-size: 20px;
+    margin: 0; padding: 8px;
 }
 
 .squidHeader
 {
     color: #99ff33;
     font-family: Galindo,sans-serif;
-    font-size: 32px;
+    font-size: 36px;
     text-align: center;
 }
 
@@ -32,15 +35,144 @@ body
 
 .squidMapColumns .squidLeftColumn, .squidMapColumns .squidRightColumn
 {
-    width: 300px;
+    width: 336px;
+    overflow: hidden;
+}
+
+.squidLeftColumn
+{
+    float: left;
+}
+
+.squidRightColumn
+{
+    float: right;
+}
+
+.squidMapsHeading
+{
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.squidHeadingTurf
+{
+    color: #dd66ff;
+}
+
+.squidHeadingRanked
+{
+    color: #ff9933;
+}
+
+.squidMapTitle
+{
+    font-size: 16px;
+    text-align: center;
+    margin-top: 4px;
+}
+
+.squidMapItem
+{
+    background-color: #dddddd;
+    color: black;
+    border-radius: 16px;
+    padding: 8px;
+    margin: 8px 0;
+}
+
+.squidMapPicture img
+{
+    font-size: 0;
 }
 
 .squidMapColumns .squidMainColumn
 {
-
+    margin: 0 352px;
 }
 
 .squidMapColumns .squidLeftColumn, .squidMapColumns .squidRightColumn
 {
 
+}
+
+.squidMapColumns .squidMainColumn
+{
+    padding-top: 28px;
+    text-align: center;
+}
+
+.squidChangeTimes
+{
+    overflow: hidden;
+    list-style-type: none;
+    width: 384px;
+    margin: 4px auto;
+    padding: 0;
+}
+
+.squidChangeTimes li
+{
+    float: left;
+    font-size: 24px;
+    margin: 0; padding: 4px;
+    width: 120px;
+}
+
+.squidStatus
+{
+    margin-bottom: 16px;
+    height: 75px;
+}
+
+.squidStatusTimeLeft
+{
+    font-size: 36px;
+    margin: 8px 0;
+}
+
+.squidStatusWaiting
+{
+    width: 100%;
+    height: 75px;
+    display: table;
+}
+
+.squidStatusWaiting .inner
+{
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.squidNav
+{
+    font-size: 16px;
+    text-align: center;
+    margin: 8px 0;
+}
+
+.squidNav a
+{
+    color: #99ff33;
+    text-decoration: none;
+}
+
+.squidNav a:hover
+{
+    text-decoration: underline;
+}
+
+.squidNav ul
+{
+    list-style-type: none;
+    margin: 0; padding: 0;
+}
+
+.squidNav li
+{
+    display: inline;
+    margin: 0;
+    padding: 0 8px;
 }
