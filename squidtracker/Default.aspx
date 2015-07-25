@@ -70,7 +70,7 @@
 
         squidFormatTimeRemaining(timeRemaining, isStale);
 
-        if (mapsTurf.length == 0 || (isStale && timeSinceLastQuery.asSeconds() > 5))
+        if (timeSinceLastQuery.asSeconds() > 5 && (mapsTurf.length == 0 || isStale))
         {
             $.ajax("stages_info.ashx",
             {
