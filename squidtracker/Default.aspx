@@ -12,7 +12,7 @@
 
 <script type="text/javascript">
 
-    var squidNextStage = { "filename": "05_athletic", "name_ja": null, "name_en": "Camp Triggerfish" };
+    var squidNextStage = { "filename": "blank", "name_ja": null, "name_en": "A new map" };
 
     var squidViewModel =
     {
