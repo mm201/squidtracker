@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.5.40)
 # Database: squidtracker
-# Generation Time: 2015-07-11 04:50:38 +0000
+# Generation Time: 2015-07-25 09:44:01 +0000
 # ************************************************************
 
 
@@ -28,6 +28,7 @@ DROP TABLE IF EXISTS `squid_gear_clothes`;
 CREATE TABLE `squid_gear_clothes` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `identifier` varchar(80) NOT NULL DEFAULT '',
+  `filename` varchar(300) DEFAULT NULL,
   `name_ja` varchar(300) DEFAULT NULL,
   `name_en` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -44,6 +45,7 @@ DROP TABLE IF EXISTS `squid_gear_head`;
 CREATE TABLE `squid_gear_head` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `identifier` varchar(80) NOT NULL DEFAULT '',
+  `filename` varchar(300) DEFAULT NULL,
   `name_ja` varchar(300) DEFAULT NULL,
   `name_en` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -60,6 +62,7 @@ DROP TABLE IF EXISTS `squid_gear_shoes`;
 CREATE TABLE `squid_gear_shoes` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `identifier` varchar(80) NOT NULL DEFAULT '',
+  `filename` varchar(300) DEFAULT NULL,
   `name_ja` varchar(300) DEFAULT NULL,
   `name_en` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -86,11 +89,11 @@ CREATE TABLE `squid_leaderboard_entries` (
   KEY `gear_shoes_id` (`gear_shoes_id`),
   KEY `gear_clothes_id` (`gear_clothes_id`),
   KEY `gear_head_id` (`gear_head_id`),
-  CONSTRAINT `squid_leaderboard_entries_ibfk_5` FOREIGN KEY (`gear_head_id`) REFERENCES `squid_gear_head` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `squid_leaderboard_entries_ibfk_1` FOREIGN KEY (`leaderboard_id`) REFERENCES `squid_leaderboards` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `squid_leaderboard_entries_ibfk_2` FOREIGN KEY (`weapon_id`) REFERENCES `squid_weapons` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `squid_leaderboard_entries_ibfk_3` FOREIGN KEY (`gear_shoes_id`) REFERENCES `squid_gear_shoes` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `squid_leaderboard_entries_ibfk_4` FOREIGN KEY (`gear_clothes_id`) REFERENCES `squid_gear_clothes` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `squid_leaderboard_entries_ibfk_4` FOREIGN KEY (`gear_clothes_id`) REFERENCES `squid_gear_clothes` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `squid_leaderboard_entries_ibfk_5` FOREIGN KEY (`gear_head_id`) REFERENCES `squid_gear_head` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -112,10 +115,78 @@ CREATE TABLE `squid_leaderboards` (
   KEY `stage1_id` (`stage1_id`),
   KEY `stage2_id` (`stage2_id`),
   KEY `stage3_id` (`stage3_id`),
-  CONSTRAINT `squid_leaderboards_ibfk_3` FOREIGN KEY (`stage3_id`) REFERENCES `squid_stages` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `squid_leaderboards_ibfk_1` FOREIGN KEY (`stage1_id`) REFERENCES `squid_stages` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `squid_leaderboards_ibfk_2` FOREIGN KEY (`stage2_id`) REFERENCES `squid_stages` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `squid_leaderboards_ibfk_2` FOREIGN KEY (`stage2_id`) REFERENCES `squid_stages` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `squid_leaderboards_ibfk_3` FOREIGN KEY (`stage3_id`) REFERENCES `squid_stages` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table squid_logs_contribution_ranking
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `squid_logs_contribution_ranking`;
+
+CREATE TABLE `squid_logs_contribution_ranking` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `start_date` datetime NOT NULL,
+  `end_date` datetime DEFAULT NULL,
+  `data` text NOT NULL,
+  `is_valid` bit(1) NOT NULL DEFAULT b'1',
+  PRIMARY KEY (`id`),
+  KEY `date` (`start_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+# Dump of table squid_logs_fes_info
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `squid_logs_fes_info`;
+
+CREATE TABLE `squid_logs_fes_info` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `start_date` datetime NOT NULL,
+  `end_date` datetime DEFAULT NULL,
+  `data` text NOT NULL,
+  `is_valid` bit(1) NOT NULL DEFAULT b'1',
+  PRIMARY KEY (`id`),
+  KEY `date` (`start_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+# Dump of table squid_logs_fes_result
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `squid_logs_fes_result`;
+
+CREATE TABLE `squid_logs_fes_result` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `start_date` datetime NOT NULL,
+  `end_date` datetime DEFAULT NULL,
+  `data` text NOT NULL,
+  `is_valid` bit(1) NOT NULL DEFAULT b'1',
+  PRIMARY KEY (`id`),
+  KEY `date` (`start_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+# Dump of table squid_logs_recent_results
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `squid_logs_recent_results`;
+
+CREATE TABLE `squid_logs_recent_results` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `start_date` datetime NOT NULL,
+  `end_date` datetime DEFAULT NULL,
+  `data` text NOT NULL,
+  `is_valid` bit(1) NOT NULL DEFAULT b'1',
+  PRIMARY KEY (`id`),
+  KEY `date` (`start_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
 
@@ -126,10 +197,12 @@ DROP TABLE IF EXISTS `squid_logs_stages_info`;
 
 CREATE TABLE `squid_logs_stages_info` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `date` datetime NOT NULL,
+  `start_date` datetime NOT NULL,
+  `end_date` datetime DEFAULT NULL,
   `data` text NOT NULL,
+  `is_valid` bit(1) NOT NULL DEFAULT b'1',
   PRIMARY KEY (`id`),
-  KEY `date` (`date`)
+  KEY `date` (`start_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -142,6 +215,7 @@ DROP TABLE IF EXISTS `squid_stages`;
 CREATE TABLE `squid_stages` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `identifier` varchar(80) NOT NULL DEFAULT '',
+  `filename` varchar(300) DEFAULT NULL,
   `name_ja` varchar(300) DEFAULT NULL,
   `name_en` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -158,6 +232,7 @@ DROP TABLE IF EXISTS `squid_weapons`;
 CREATE TABLE `squid_weapons` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `identifier` varchar(80) NOT NULL DEFAULT '',
+  `filename` varchar(300) DEFAULT NULL,
   `name_ja` varchar(300) DEFAULT NULL,
   `name_en` varchar(300) DEFAULT NULL,
   PRIMARY KEY (`id`),
