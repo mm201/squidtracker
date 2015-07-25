@@ -152,10 +152,16 @@
         {
             trStr = timeRemaining.hours() + ":" + padNumber(timeRemaining.minutes(), 2) + ":" + padNumber(timeRemaining.seconds(), 2);
         }
+        var isSplatfest = squidViewModel.isSplatfest();
         squidViewModel.timeRemainingFormatted(trStr);
-        squidViewModel.isStale(isStale && !squidViewModel.isSplatfest());
+        squidViewModel.isStale(isStale && !isSplatfest);
         squidViewModel.isFresh(!isStale);
-        document.title = trStr + " - Squid Tracker";
+        if (isSplatfest)
+            document.title = "Info unavailable - Squid Tracker";
+        else if (isStale)
+            document.title = "Waiting... - Squid Tracker";
+        else
+            document.title = trStr + " - Squid Tracker";
     }
 
     function squidImageSrc(id)

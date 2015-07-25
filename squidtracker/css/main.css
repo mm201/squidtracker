@@ -13,7 +13,7 @@ body
 {
     color: #99ff33;
     font-family: Galindo,sans-serif;
-    font-size: 36px;
+    font-size: 40px;
     text-align: center;
 }
 
@@ -54,6 +54,8 @@ body
     text-align: center;
     font-weight: bold;
     margin-bottom: 4px;
+    font-family: Galindo,sans-serif;
+    font-size: 20px;
 }
 
 .squidHeadingTurf
@@ -123,7 +125,7 @@ body
 .squidStatus
 {
     margin-bottom: 16px;
-    height: 75px;
+    height: 200px;
 }
 
 .squidStatusTimeLeft
@@ -135,7 +137,7 @@ body
 .squidStatusWaiting
 {
     width: 100%;
-    height: 75px;
+    height: 200px;
     display: table;
 }
 
