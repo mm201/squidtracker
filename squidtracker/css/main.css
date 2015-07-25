@@ -7,6 +7,7 @@ body
     font-family: Arial,Helvetica,sans-serif;
     font-size: 20px;
     margin: 0; padding: 8px;
+    min-width: 304px;
 }
 
 .squidHeader
@@ -52,10 +53,10 @@ body
 .squidMapsHeading
 {
     text-align: center;
-    font-weight: bold;
     margin-bottom: 4px;
     font-family: Galindo,sans-serif;
     font-size: 20px;
+    white-space: nowrap;
 }
 
 .squidHeadingTurf
@@ -87,22 +88,20 @@ body
 .squidMapPicture img
 {
     font-size: 0;
+    width: 100%;
 }
 
 .squidMapColumns .squidMainColumn
 {
-    margin: 0 352px;
-}
-
-.squidMapColumns .squidLeftColumn, .squidMapColumns .squidRightColumn
-{
-
-}
-
-.squidMapColumns .squidMainColumn
-{
-    padding-top: 28px;
+    margin: 0 344px;
+    padding-top: 228px;
     text-align: center;
+}
+
+.squidMapColumns .squidMainAbove
+{
+    position: absolute;
+    left: 352px; right: 352px;
 }
 
 .squidChangeTimes
@@ -112,12 +111,13 @@ body
     width: 384px;
     margin: 4px auto;
     padding: 0;
+    font-size: 24px;
+    white-space: nowrap;
 }
 
 .squidChangeTimes li
 {
     float: left;
-    font-size: 24px;
     margin: 0; padding: 4px;
     width: 120px;
 }
@@ -125,7 +125,6 @@ body
 .squidStatus
 {
     margin-bottom: 16px;
-    height: 200px;
 }
 
 .squidStatusTimeLeft
@@ -153,6 +152,7 @@ body
     font-size: 16px;
     text-align: center;
     margin: 8px 0;
+    line-height: 24px;
 }
 
 .squidNav a
@@ -177,4 +177,111 @@ body
     display: inline;
     margin: 0;
     padding: 0 8px;
+    white-space: nowrap;
+}
+
+@media not all and (min-width: 1088px)
+{
+    .squidChangeTimes
+    {
+        width: auto;
+        margin: 4px 0;
+    }
+
+    .squidChangeTimes li
+    {
+        width: calc(33.33% - 8px);
+    }
+}
+
+@media not all and (min-width: 1040px)
+{
+    .squidMapColumns .squidLeftColumn, .squidMapColumns .squidRightColumn
+    {
+        width: 304px;
+    }
+
+    .squidMapColumns .squidMainColumn
+    {
+        margin: 0 312px;
+    }
+
+    .squidMapColumns .squidMainAbove
+    {
+        left: 320px; right: 320px;
+    }
+
+    .squidChangeTimes
+    {
+        font-size: 20px;
+    }
+}
+
+@media not all and (min-width: 944px)
+{
+    .squidMapColumns .squidMainAbove
+    {
+        position: static;
+        margin: 8px 0;
+    }
+
+    .squidStatusWaiting
+    {
+        height: 80px;
+    }
+
+    .squidMapColumns .squidLeftColumn, .squidMapColumns .squidRightColumn
+    {
+        width: calc(50% - 8px);
+        margin: 0;
+    }
+
+    .squidMapItem
+    {
+        width: 336px;
+        margin: 8px auto;
+    }
+
+    .squidMapColumns .squidMainColumn
+    {
+        margin: 8px 0;
+        clear: both;
+        padding-top: 16px;
+    }
+}
+
+@media not all and (min-width: 736px)
+{
+    .squidMapItem
+    {
+        width: auto;
+    }
+}
+
+@media not all and (min-width: 568px)
+{
+    .squidMapColumns .squidLeftColumn, .squidMapColumns .squidRightColumn
+    {
+        float: none;
+        width: auto;
+        margin-bottom: 16px;
+    }
+
+    .squidMapItem
+    {
+        width: 336px;
+    }
+
+    .squidMapColumns .squidMainColumn
+    {
+        padding-top: 0;
+    }
+}
+
+@media not all and (min-width: 368px)
+{
+    .squidMapItem
+    {
+        width: auto;
+    }
 }

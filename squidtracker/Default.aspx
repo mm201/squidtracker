@@ -12,7 +12,7 @@
 
 <script type="text/javascript">
 
-    var squidNextStage = { "filename": "blank", "name_ja": null, "name_en": "A new map" };
+    var squidNextStage = { "filename": "blank", "name_ja": null, "name_en": "A new map!" };
 
     var squidViewModel =
     {
@@ -210,65 +210,7 @@
 </script>
 
     <div class="squidMapColumns">
-        <div class="squidLeftColumn">
-            <div class="squidMapsHeading squidHeadingTurf">Current Turf War maps</div>
-
-            <div data-bind="foreach: mapsTurf">
-                <div class="squidMapItem">
-                <div class="squidMapPicture">
-                    <img src="images/stages/blank.png" alt="" width="320" height="180"
-                        data-bind="attr: { src: squidImageSrc($data.id), alt: squidGetName($data.id) }" />
-                </div>
-                <div class="squidMapTitle" data-bind="text: squidGetName($data.id)">
-
-                </div>
-                </div>
-            </div>
-            <div data-bind="if: isSplatfest">
-                <div class="squidMapItem">
-                    <div class="squidMapPicture">
-                    <img src="images/stages/blank.png" alt="" width="320" height="180" />
-                    </div>
-                    <div class="squidMapTitle">Unknown</div>
-                </div>
-                <div class="squidMapItem">
-                    <div class="squidMapPicture">
-                    <img src="images/stages/blank.png" alt="" width="320" height="180" />
-                    </div>
-                    <div class="squidMapTitle">Unknown</div>
-                </div>
-            </div>
-        </div>
-        <div class="squidRightColumn">
-            <div class="squidMapsHeading squidHeadingRanked">Current Ranked maps</div>
-
-            <div data-bind="foreach: mapsRanked">
-                <div class="squidMapItem">
-                <div class="squidMapPicture">
-                    <img src="images/stages/blank.png" alt="" width="320" height="180"
-                        data-bind="attr: { src: squidImageSrc($data.id), alt: squidGetName($data.id) }" />
-                </div>
-                <div class="squidMapTitle" data-bind="text: squidGetName($data.id)">
-
-                </div>
-                </div>
-            </div>
-            <div data-bind="if: isSplatfest">
-                <div class="squidMapItem">
-                    <div class="squidMapPicture">
-                    <img src="images/stages/blank.png" alt="" width="320" height="180" />
-                    </div>
-                    <div class="squidMapTitle">Unknown</div>
-                </div>
-                <div class="squidMapItem">
-                    <div class="squidMapPicture">
-                    <img src="images/stages/blank.png" alt="" width="320" height="180" />
-                    </div>
-                    <div class="squidMapTitle">Unknown</div>
-                </div>
-            </div>
-        </div>
-        <div class="squidMainColumn">
+        <div class="squidMainAbove">
             <div class="squidStatus">
             <div data-bind="if: isFresh">
                 <div>Next map rotation in</div>
@@ -281,6 +223,66 @@
                 Due to an ongoing Japanese Splatfest, map information is unavailable.
             </div></div></div>
             </div>
+        </div>
+        <div class="squidLeftColumn">
+            <div class="squidMapsHeading squidHeadingTurf">Current Turf War maps</div>
+
+            <div data-bind="foreach: mapsTurf">
+                <div class="squidMapItem">
+                <div class="squidMapPicture">
+                    <img src="images/stages/blank.png" alt=""
+                        data-bind="attr: { src: squidImageSrc($data.id), alt: squidGetName($data.id) }" />
+                </div>
+                <div class="squidMapTitle" data-bind="text: squidGetName($data.id)">
+
+                </div>
+                </div>
+            </div>
+            <div data-bind="if: isSplatfest">
+                <div class="squidMapItem">
+                    <div class="squidMapPicture">
+                    <img src="images/stages/blank.png" alt="" />
+                    </div>
+                    <div class="squidMapTitle">Unknown</div>
+                </div>
+                <div class="squidMapItem">
+                    <div class="squidMapPicture">
+                    <img src="images/stages/blank.png" alt="" />
+                    </div>
+                    <div class="squidMapTitle">Unknown</div>
+                </div>
+            </div>
+        </div>
+        <div class="squidRightColumn">
+            <div class="squidMapsHeading squidHeadingRanked">Current Ranked maps</div>
+
+            <div data-bind="foreach: mapsRanked">
+                <div class="squidMapItem">
+                <div class="squidMapPicture">
+                    <img src="images/stages/blank.png" alt=""
+                        data-bind="attr: { src: squidImageSrc($data.id), alt: squidGetName($data.id) }" />
+                </div>
+                <div class="squidMapTitle" data-bind="text: squidGetName($data.id)">
+
+                </div>
+                </div>
+            </div>
+            <div data-bind="if: isSplatfest">
+                <div class="squidMapItem">
+                    <div class="squidMapPicture">
+                    <img src="images/stages/blank.png" alt="" />
+                    </div>
+                    <div class="squidMapTitle">Unknown</div>
+                </div>
+                <div class="squidMapItem">
+                    <div class="squidMapPicture">
+                    <img src="images/stages/blank.png" alt="" />
+                    </div>
+                    <div class="squidMapTitle">Unknown</div>
+                </div>
+            </div>
+        </div>
+        <div class="squidMainColumn">
             <div>Your map rotation times are</div>
             <ul class="squidChangeTimes" data-bind="foreach: changeTimes">
                 <li class="squidChangeTime" data-bind="text: $data"></li>
