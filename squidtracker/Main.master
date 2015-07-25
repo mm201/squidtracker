@@ -23,6 +23,7 @@
         <asp:ContentPlaceHolder ID="cpMain" runat="server" />
     </div>
 
+    <asp:PlaceHolder ID="phNavHide" Visible="false" runat="server">
     <nav class="squidNav">
         <ul>
             <li>
@@ -36,6 +37,7 @@
             </li>
         </ul>
     </nav>
+    </asp:PlaceHolder>
 
 </body>
 </html>
