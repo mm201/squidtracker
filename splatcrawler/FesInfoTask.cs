@@ -71,11 +71,11 @@ namespace SquidTracker.Crawler
             {
                 conn.Open();
                 if (fes_info != null)
-                    Database.LogFesInfo(conn, fes_info, false);
+                    Database.LogFesInfo(conn, fes_info, true);
                 if (fes_result != null)
                     Database.LogFesResult(conn, fes_result, false);
                 if (recent_results != null)
-                    Database.LogFesRecentResults(conn, recent_results, false);
+                    ProcessRecentResults(conn, recent_results);
                 if (contribution_ranking != null)
                     ProcessContributionRanking(conn, contribution_ranking);
                 conn.Close();
@@ -124,11 +124,37 @@ namespace SquidTracker.Crawler
             if (newHead > 1) Console.WriteLine("Inserted {0} new hats.", newHead);
         }
 
+        private void ProcessRecentResults(MySqlConnection conn, String data)
+        {
+            FesRecentResult[] records = null;
+            try
+            {
+                records = GetRecentResults(data);
+            }
+            catch { }
+
+            bool isValid = records != null && records.Length > 0;
+            Database.LogFesRecentResults(conn, data, isValid);
+            if (!isValid) return;
+        }
+
         public static RankingRecord[] GetRankingRecords(String data)
         {
             try
             {
                 return JsonConvert.DeserializeObject<RankingRecord[]>(data);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static FesRecentResult[] GetRecentResults(String data)
+        {
+            try
+            {
+                return JsonConvert.DeserializeObject<FesRecentResult[]>(data);
             }
             catch
             {

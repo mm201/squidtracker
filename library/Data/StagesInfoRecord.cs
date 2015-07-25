@@ -27,4 +27,10 @@ namespace SquidTracker.Data
         public String gear_clothes_id;
         public String gear_head_id;
     }
+
+    public class FesRecentResult
+    {
+        public String win_team_name;
+        public String win_team_mvp;
+    }
 }
