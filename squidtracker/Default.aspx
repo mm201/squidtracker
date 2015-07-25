@@ -24,7 +24,7 @@
         timeEndFormatted: ko.observable(),
         timeRemainingFormatted: ko.observable(),
         isStale: ko.observable(false),
-        timeLastQuery: ko.observable(),
+        timeNextQuery: ko.observable(),
     }
 
     $(document).ready(function ()
@@ -43,10 +43,9 @@
     {
         var mapsTurf = squidViewModel.mapsTurf();
         var timeEnd = squidViewModel.timeEnd();
-        var timeLastQuery = squidViewModel.timeLastQuery();
 
         var timeNow = moment().utc();
-        var timeRemaining, isStale, timeSinceLastQuery;
+        var timeRemaining, isStale;
 
         if (timeEnd !== undefined)
         {
@@ -55,22 +54,16 @@
         }
         else
         {
+            timeEnd = timeNow;
             timeRemaining = moment.duration(0);
             isStale = true;
         }
 
-        if (timeLastQuery !== undefined)
-        {
-            timeSinceLastQuery = moment.duration(timeNow.diff(timeLastQuery));
-        }
-        else
-        {
-            timeSinceLastQuery = moment.duration(1, 'minutes');
-        }
-
         squidFormatTimeRemaining(timeRemaining, isStale);
+        var timeNextQuery = squidViewModel.timeNextQuery();
+        if (timeNextQuery === undefined) timeNextQuery = timeNow;
 
-        if (timeSinceLastQuery.asSeconds() > 5 && (mapsTurf.length == 0 || isStale))
+        if (timeNextQuery.diff(timeNow) <= 0 && (mapsTurf.length == 0 || isStale))
         {
             $.ajax("stages_info.ashx",
             {
@@ -87,11 +80,27 @@
                     squidViewModel.mapsTurf(data[0].stages);
                     squidViewModel.timeEnd(timeEnd);
                     squidViewModel.timeEndFormatted(timeEndLocal.format("LT"));
-                    squidViewModel.timeLastQuery(timeNow);
 
                     squidFormatTimeRemaining(timeRemaining, isStale);
+
+                    var timeExpectedUpdate = timeEnd.clone().add(60, 's');
+                    var secondsLate = moment.duration(timeNow.diff(timeExpectedUpdate)).asSeconds();
+
+                    if (secondsLate < 0)
+                        squidViewModel.timeNextQuery(timeExpectedUpdate);
+                    else if (secondsLate < 5)
+                        squidViewModel.timeNextQuery(timeNow);
+                    else if (secondsLate < 60)
+                        squidViewModel.timeNextQuery(timeNow.clone().add(5, 's'));
+                    else
+                        squidViewModel.timeNextQuery(timeNow.clone().add(1800, 's'));
                 },
-                complete: function(data)
+                error: function()
+                {
+                    var timeNow = moment().utc();
+                    squidViewModel.timeNextQuery(timeNow);
+                },
+                complete: function()
                 {
                     squidRefreshTimeout();
                 }
