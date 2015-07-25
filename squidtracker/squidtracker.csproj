@@ -269,6 +269,7 @@
     <Content Include="images\stages\07_maze.png" />
     <Content Include="images\stages\08_tuzuraori.png" />
     <Content Include="images\stages\09_ruins.png" />
+    <Content Include="images\stages\blank.png" />
     <Content Include="images\weapons\wst_charge_light00.png" />
     <Content Include="images\weapons\wst_charge_light01.png" />
     <Content Include="images\weapons\wst_charge_long00.png" />
@@ -346,7 +347,7 @@
     <Content Include="scripts\moment.min.js" />
     <Content Include="scripts\mq.genie.min.js" />
     <Content Include="scripts\retina.js" />
-    <Content Include="Web.config" />
+    <None Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Default.aspx.cs">
