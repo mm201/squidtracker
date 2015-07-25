@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
 using System.Linq;
 using System.Text;
 using MySql.Data;
@@ -36,11 +37,26 @@ namespace SquidTracker.Data
 
         private static void LogNetRequest(MySqlConnection conn, String table, String data, bool isValid)
         {
-            conn.ExecuteNonQuery("INSERT INTO " + table + " (date, data, is_valid) " +
-                "VALUES (UTC_TIMESTAMP(), @data, @is_valid)",
-                new MySqlParameter("@data", data),
-                new MySqlParameter("@is_valid", isValid)
-                );
+            DataTable tbl = conn.ExecuteDataTable("SELECT id, data FROM " + table + " ORDER BY end_date DESC");
+            String prevData = tbl.Rows.Count == 0 ? null : 
+                DatabaseExtender.Cast<String>(tbl.Rows[0]["data"]);
+            int ? prevId = tbl.Rows.Count == 0 ? null :
+                DatabaseExtender.Cast<int ?>(tbl.Rows[0]["id"]);
+
+            if (prevId != null && prevData == data)
+            {
+                conn.ExecuteNonQuery("UPDATE " + table + " SET end_date = UTC_TIMESTAMP() " +
+                    "WHERE id = @id",
+                    new MySqlParameter("@id", (int)prevId));
+            }
+            else
+            {
+                conn.ExecuteNonQuery("INSERT INTO " + table + " (start_date, end_date, data, is_valid) " +
+                    "VALUES (UTC_TIMESTAMP(), UTC_TIMESTAMP(), @data, @is_valid)",
+                    new MySqlParameter("@data", data),
+                    new MySqlParameter("@is_valid", isValid)
+                    );
+            }
         }
 
         public static void LogStagesInfo(MySqlConnection conn, String data, bool isValid)

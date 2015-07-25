@@ -221,7 +221,7 @@ namespace SquidTracker.Crawler
 
         private static void InsertMissingLeaderboard(MySqlConnection conn)
         {
-            String lastValidPoll = DatabaseExtender.Cast<String>(conn.ExecuteScalar("SELECT data FROM squid_logs_stages_info WHERE is_valid = 1 ORDER BY `date` DESC LIMIT 1"));
+            String lastValidPoll = DatabaseExtender.Cast<String>(conn.ExecuteScalar("SELECT data FROM squid_logs_stages_info WHERE is_valid = 1 ORDER BY start_date DESC LIMIT 1"));
             int newStages, newWeapons,
                 newShoes, newClothes, newHead;
             StagesInfoRecord[] records = GetStagesInfo(lastValidPoll);

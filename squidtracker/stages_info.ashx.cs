@@ -23,7 +23,7 @@ namespace SquidTracker.Web
             using (MySqlConnection conn = Database.CreateConnection())
             {
                 conn.Open();
-                stages_info = DatabaseExtender.Cast<String>(conn.ExecuteScalar("SELECT data FROM squid_logs_stages_info WHERE is_valid = 1 ORDER BY `date` DESC LIMIT 1"));
+                stages_info = DatabaseExtender.Cast<String>(conn.ExecuteScalar("SELECT data FROM squid_logs_stages_info WHERE is_valid = 1 ORDER BY start_date DESC LIMIT 1"));
                 conn.Close();
             }
 
