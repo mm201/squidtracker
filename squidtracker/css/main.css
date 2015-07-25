@@ -10,6 +10,11 @@ body
     min-width: 304px;
 }
 
+a
+{
+    color: #99ff33;
+}
+
 .squidHeader
 {
     color: #99ff33;
@@ -178,6 +183,13 @@ body
     margin: 0;
     padding: 0 8px;
     white-space: nowrap;
+}
+
+.squidDisclaimer
+{
+    font-size: 12px;
+    text-align: center;
+    margin: 8px 0 0 0;
 }
 
 @media not all and (min-width: 1088px)
