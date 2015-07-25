@@ -7,8 +7,8 @@ namespace SquidTracker.Data
 {
     public class StagesInfoRecord
     {
-        public DateTime datetime_term_begin;
-        public DateTime datetime_term_end;
+        public DateTime ? datetime_term_begin;
+        public DateTime ? datetime_term_end;
         public StageRecord[] stages;
         public RankingRecord[] ranking;
     }

@@ -36,9 +36,11 @@ namespace SquidTracker.Data
 
         private static void LogNetRequest(MySqlConnection conn, String table, String data, bool isValid)
         {
-            conn.ExecuteNonQuery("INSERT INTO " + table + " (date, data) " +
-                "VALUES (UTC_TIMESTAMP(), @data)",
-                new MySqlParameter("@data", data));
+            conn.ExecuteNonQuery("INSERT INTO " + table + " (date, data, is_valid) " +
+                "VALUES (UTC_TIMESTAMP(), @data, @is_valid)",
+                new MySqlParameter("@data", data),
+                new MySqlParameter("@is_valid", isValid)
+                );
         }
 
         public static void LogStagesInfo(MySqlConnection conn, String data, bool isValid)

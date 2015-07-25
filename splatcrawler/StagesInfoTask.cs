@@ -48,57 +48,67 @@ namespace SquidTracker.Crawler
                 const int FAST_POLL_RATE = 5; // seconds between polls
                 TimeZoneInfo tzi = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
                 StagesInfoRecord record = records[0];
-                DateTime endTimeUtc = TimeZoneInfo.ConvertTimeToUtc(record.datetime_term_end, tzi);
-                DateTime endTimePreEmpt = endTimeUtc.AddSeconds(-PRE_EMPT);
-                DateTime startTimeUtc = TimeZoneInfo.ConvertTimeToUtc(record.datetime_term_begin, tzi);
-                if (endTimePreEmpt < now)
+                if (IsRecordValid(record))
                 {
-                    // received data is stale so we are polling
-                    NextPollTime = now.AddSeconds(FAST_POLL_RATE);
-                    if (freshShortUpdate)
-                        Console.Write(".");
-                    else
-                        Console.Write("Waiting for new maps.");
-                    pollType = PollTypes.Fresh;
+                    DateTime endTimeUtc = TimeZoneInfo.ConvertTimeToUtc((DateTime)record.datetime_term_end, tzi);
+                    DateTime endTimePreEmpt = endTimeUtc.AddSeconds(-PRE_EMPT);
+                    DateTime startTimeUtc = TimeZoneInfo.ConvertTimeToUtc((DateTime)record.datetime_term_begin, tzi);
+                    if (endTimePreEmpt < now)
+                    {
+                        // received data is stale so we are polling
+                        NextPollTime = now.AddSeconds(FAST_POLL_RATE);
+                        if (freshShortUpdate)
+                            Console.Write(".");
+                        else
+                            Console.Write("Waiting for new maps.");
+                        pollType = PollTypes.Fresh;
 
-                    freshShortUpdate = true;
-                }
-                else if (endTimePreEmpt < NextPollTime)
-                {
-                    // end of rotation comes sooner than ambient polling
-                    NextPollTime = endTimePreEmpt;
-                    Console.WriteLine("Polling for fresh maps at {0:G}.", NextPollTime.ToLocalTime());
-                    pollType = PollTypes.Fresh;
-                    freshShortUpdate = false;
-                }
-                else if (startTimeUtc.AddHours(1) > now)
-                {
-                    // This is the first hour of a new leaderboard.
-                    // The leaderboard changes more rapidly early on, so we
-                    // poll more frequently to increase our chance of picking
-                    // up weapons/gear not already in the database.
-                    const int RAPID_POLL_INTERVAL = 10;
-                    nextAccurate = now.AddMinutes(RAPID_POLL_INTERVAL);
-                    int minute = (nextAccurate.Minute / RAPID_POLL_INTERVAL) * RAPID_POLL_INTERVAL;
-                    NextPollTime = new DateTime(
-                        nextAccurate.Year,
-                        nextAccurate.Month,
-                        nextAccurate.Day,
-                        nextAccurate.Hour,
-                        minute,
-                        0,
-                        nextAccurate.Kind);
-                    Console.WriteLine("Next poll at {0:G}.", NextPollTime.ToLocalTime());
-                    freshShortUpdate = false;
+                        freshShortUpdate = true;
+                    }
+                    else if (endTimePreEmpt < NextPollTime)
+                    {
+                        // end of rotation comes sooner than ambient polling
+                        NextPollTime = endTimePreEmpt;
+                        Console.WriteLine("Polling for fresh maps at {0:G}.", NextPollTime.ToLocalTime());
+                        pollType = PollTypes.Fresh;
+                        freshShortUpdate = false;
+                    }
+                    else if (startTimeUtc.AddHours(1) > now)
+                    {
+                        // This is the first hour of a new leaderboard.
+                        // The leaderboard changes more rapidly early on, so we
+                        // poll more frequently to increase our chance of picking
+                        // up weapons/gear not already in the database.
+                        const int RAPID_POLL_INTERVAL = 10;
+                        nextAccurate = now.AddMinutes(RAPID_POLL_INTERVAL);
+                        int minute = (nextAccurate.Minute / RAPID_POLL_INTERVAL) * RAPID_POLL_INTERVAL;
+                        NextPollTime = new DateTime(
+                            nextAccurate.Year,
+                            nextAccurate.Month,
+                            nextAccurate.Day,
+                            nextAccurate.Hour,
+                            minute,
+                            0,
+                            nextAccurate.Kind);
+                        Console.WriteLine("Next poll at {0:G}.", NextPollTime.ToLocalTime());
+                        freshShortUpdate = false;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Next poll at {0:G}.", NextPollTime.ToLocalTime());
+                        freshShortUpdate = false;
+                    }
                 }
                 else
                 {
+                    Console.WriteLine("Server isn't providing data.");
                     Console.WriteLine("Next poll at {0:G}.", NextPollTime.ToLocalTime());
                     freshShortUpdate = false;
                 }
             }
             else
             {
+                Console.WriteLine("Server isn't providing data.");
                 Console.WriteLine("Next poll at {0:G}.", NextPollTime.ToLocalTime());
                 freshShortUpdate = false;
             }
@@ -117,46 +127,57 @@ namespace SquidTracker.Crawler
                 }
                 catch { }
 
-                Database.LogStagesInfo(conn, data, records != null);
+                bool isValid = records != null && records.Length > 0 &&
+                    IsRecordValid(records[0]);
+                Database.LogStagesInfo(conn, data, isValid);
 
-                if (records == null || records.Length == 0) return records;
+                if (!isValid) return null;
 
-                StagesInfoRecord record = records[0];
                 int newStages = 0, newWeapons = 0,
                     newShoes = 0, newClothes = 0, newHead = 0;
-                // scrape all the identifiers we can
-                foreach (StageRecord sr in record.stages)
                 {
-                    bool isNew = false;
-                    if (sr != null) Database.GetStageId(conn, sr, out isNew);
-                    if (isNew) newStages++;
-                }
+                    StagesInfoRecord record = records[0];
+                    // scrape all the identifiers we can
+                    foreach (StageRecord sr in record.stages)
+                    {
+                        bool isNew = false;
+                        if (sr != null) Database.GetStageId(conn, sr, out isNew);
+                        if (isNew) newStages++;
+                    }
 
-                foreach (RankingRecord rr in record.ranking)
-                {
-                    bool isNew = false;
-                    if (rr.weapon_id != null) Database.GetWeaponId(conn, rr.weapon_id, out isNew);
-                    if (isNew) newWeapons++;
+                    foreach (RankingRecord rr in record.ranking)
+                    {
+                        bool isNew = false;
+                        if (rr.weapon_id != null) Database.GetWeaponId(conn, rr.weapon_id, out isNew);
+                        if (isNew) newWeapons++;
 
-                    isNew = false;
-                    if (rr.gear_shoes_id != null) Database.GetShoesId(conn, rr.gear_shoes_id, out isNew);
-                    if (isNew) newShoes++;
-                    
-                    isNew = false;
-                    if (rr.gear_clothes_id != null) Database.GetShirtId(conn, rr.gear_clothes_id, out isNew);
-                    if (isNew) newClothes++;
-                    
-                    isNew = false;
-                    if (rr.gear_head_id != null) Database.GetHatId(conn, rr.gear_head_id, out isNew);
-                    if (isNew) newHead++;
+                        isNew = false;
+                        if (rr.gear_shoes_id != null) Database.GetShoesId(conn, rr.gear_shoes_id, out isNew);
+                        if (isNew) newShoes++;
+
+                        isNew = false;
+                        if (rr.gear_clothes_id != null) Database.GetShirtId(conn, rr.gear_clothes_id, out isNew);
+                        if (isNew) newClothes++;
+
+                        isNew = false;
+                        if (rr.gear_head_id != null) Database.GetHatId(conn, rr.gear_head_id, out isNew);
+                        if (isNew) newHead++;
+                    }
                 }
 
                 for (int x = 1; x < records.Length; x++)
                 {
-                    int thisNewStages, thisNewWeapons,
-                        thisNewShoes, thisNewClothes, thisNewHead;
-                    bool success = Database.InsertLeaderboard(conn, records[x],
-                        out thisNewStages, out thisNewWeapons, out thisNewShoes, out thisNewClothes, out thisNewHead);
+                    int thisNewStages = 0, thisNewWeapons = 0,
+                        thisNewShoes = 0, thisNewClothes = 0, thisNewHead = 0;
+                    StagesInfoRecord record = records[x];
+                    bool success = false;
+
+                    if (IsRecordValid(record))
+                    {
+                        success = Database.InsertLeaderboard(conn, records[x],
+                            out thisNewStages, out thisNewWeapons, out thisNewShoes, out thisNewClothes, out thisNewHead);
+                    }
+
                     newStages += thisNewStages;
                     newWeapons += thisNewWeapons;
                     newShoes += thisNewShoes;
@@ -185,6 +206,12 @@ namespace SquidTracker.Crawler
 
                 return records;
             }
+        }
+
+        private static bool IsRecordValid(StagesInfoRecord record)
+        {
+            return record.datetime_term_begin != null && record.datetime_term_end != null &&
+                    record.ranking.Length > 0 && record.stages.Length > 0;
         }
 
         public static DateTime TokyoToUtc(DateTime date)
