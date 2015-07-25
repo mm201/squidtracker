@@ -42,7 +42,7 @@ namespace SquidTracker.Crawler
 
             pollType = PollTypes.Ambient;
 
-            if (records.Length > 0)
+            if (records != null && records.Length > 0)
             {
                 const int PRE_EMPT = 10; // seconds before map rotation when we begin polling
                 const int FAST_POLL_RATE = 5; // seconds between polls
