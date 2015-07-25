@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using SquidTracker.Data;
 
 namespace SquidTracker.Crawler
@@ -76,8 +77,62 @@ namespace SquidTracker.Crawler
                 if (recent_results != null)
                     Database.LogFesRecentResults(conn, recent_results, false);
                 if (contribution_ranking != null)
-                    Database.LogFesContributionRanking(conn, contribution_ranking, false);
+                    ProcessContributionRanking(conn, contribution_ranking);
                 conn.Close();
+            }
+        }
+
+        private void ProcessContributionRanking(MySqlConnection conn, String data)
+        {
+            RankingRecord[] records = null;
+            try
+            {
+                records = GetRankingRecords(data);
+            }
+            catch { }
+
+            bool isValid = records != null && records.Length > 0;
+            Database.LogFesContributionRanking(conn, data, isValid);
+            if (!isValid) return;
+
+            int newWeapons = 0, newShoes = 0, newClothes = 0, newHead = 0;
+            foreach (RankingRecord rr in records)
+            {
+                bool isNew = false;
+                if (rr.weapon_id != null) Database.GetWeaponId(conn, rr.weapon_id, out isNew);
+                if (isNew) newWeapons++;
+
+                isNew = false;
+                if (rr.gear_shoes_id != null) Database.GetShoesId(conn, rr.gear_shoes_id, out isNew);
+                if (isNew) newShoes++;
+
+                isNew = false;
+                if (rr.gear_clothes_id != null) Database.GetShirtId(conn, rr.gear_clothes_id, out isNew);
+                if (isNew) newClothes++;
+
+                isNew = false;
+                if (rr.gear_head_id != null) Database.GetHatId(conn, rr.gear_head_id, out isNew);
+                if (isNew) newHead++;
+            }
+            if (newWeapons == 1) Console.WriteLine("Inserted 1 new weapon.");
+            if (newWeapons > 1) Console.WriteLine("Inserted {0} new weapons.", newWeapons);
+            if (newShoes == 1) Console.WriteLine("Inserted 1 new shoe.");
+            if (newShoes > 1) Console.WriteLine("Inserted {0} new shoes.", newShoes);
+            if (newClothes == 1) Console.WriteLine("Inserted 1 new shirt.");
+            if (newClothes > 1) Console.WriteLine("Inserted {0} new shirts.", newClothes);
+            if (newHead == 1) Console.WriteLine("Inserted 1 new hat.");
+            if (newHead > 1) Console.WriteLine("Inserted {0} new hats.", newHead);
+        }
+
+        public static RankingRecord[] GetRankingRecords(String data)
+        {
+            try
+            {
+                return JsonConvert.DeserializeObject<RankingRecord[]>(data);
+            }
+            catch
+            {
+                return null;
             }
         }
     }
