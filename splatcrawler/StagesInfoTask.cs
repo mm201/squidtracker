@@ -131,7 +131,12 @@ namespace SquidTracker.Crawler
                     IsRecordValid(records[0]);
                 Database.LogStagesInfo(conn, data, isValid);
 
-                if (!isValid) return null;
+                if (!isValid)
+                {
+                    if (records != null && records.Length > 0)
+                        InsertMissingLeaderboard(conn);
+                    return null;
+                }
 
                 int newStages = 0, newWeapons = 0,
                     newShoes = 0, newClothes = 0, newHead = 0;
@@ -212,6 +217,27 @@ namespace SquidTracker.Crawler
         {
             return record.datetime_term_begin != null && record.datetime_term_end != null &&
                     record.ranking.Length > 0 && record.stages.Length > 0;
+        }
+
+        private static void InsertMissingLeaderboard(MySqlConnection conn)
+        {
+            String lastValidPoll = DatabaseExtender.Cast<String>(conn.ExecuteScalar("SELECT data FROM squid_logs_stages_info WHERE is_valid = 1 ORDER BY `date` DESC LIMIT 1"));
+            int newStages, newWeapons,
+                newShoes, newClothes, newHead;
+            StagesInfoRecord[] records = GetStagesInfo(lastValidPoll);
+            StagesInfoRecord record = records[0];
+            bool success = false;
+
+            if (IsRecordValid(record))
+            {
+                success = Database.InsertLeaderboard(conn, record,
+                    out newStages, out newWeapons, out newShoes, out newClothes, out newHead);
+            }
+
+            if (success)
+            {
+                Console.WriteLine("Inserted leaderboard for {0} to {1}.", record.datetime_term_begin, record.datetime_term_end);
+            }
         }
 
         public static DateTime TokyoToUtc(DateTime date)
