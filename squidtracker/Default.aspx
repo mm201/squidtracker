@@ -213,13 +213,15 @@
         <div class="squidMainAbove">
             <div class="squidStatus">
             <div data-bind="if: isFresh">
+                <div class="squidStatusFresh"><div class="inner">
                 <div>Next map rotation in</div>
                 <div class="squidStatusTimeLeft" data-bind="text: timeRemainingFormatted"></div>
+                </div></div>
             </div>
-            <div  data-bind="if: isStale"><div class="squidStatusWaiting"><div class="inner">
+            <div data-bind="if: isStale"><div class="squidStatusWaiting"><div class="inner">
                 Waiting for new maps...
             </div></div></div>
-            <div  data-bind="if: isSplatfest"><div class="squidStatusWaiting"><div class="inner">
+            <div data-bind="if: isSplatfest"><div class="squidStatusWaiting"><div class="inner">
                 Due to an ongoing Japanese Splatfest, map information is unavailable.
             </div></div></div>
             </div>
