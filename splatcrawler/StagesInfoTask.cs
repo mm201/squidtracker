@@ -216,7 +216,7 @@ namespace SquidTracker.Crawler
         private static bool IsRecordValid(StagesInfoRecord record)
         {
             return record.datetime_term_begin != null && record.datetime_term_end != null &&
-                    record.ranking.Length > 0 && record.stages.Length > 0;
+                    record.stages.Length > 0;
         }
 
         private static void InsertMissingLeaderboard(MySqlConnection conn)
