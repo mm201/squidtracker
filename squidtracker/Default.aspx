@@ -12,7 +12,7 @@
 
 <script type="text/javascript">
 
-    var squidNextStage = { "filename": "blank", "name_ja": null, "name_en": "A new map!" };
+    var squidNextStage = { "filename": "next", "name_ja": null, "name_en": "A new map!" };
 
     var squidViewModel =
     {
