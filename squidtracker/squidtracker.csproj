@@ -347,6 +347,8 @@
     <Content Include="scripts\moment.min.js" />
     <Content Include="scripts\mq.genie.min.js" />
     <Content Include="scripts\retina.js" />
+    <Content Include="css\ikamodoki.woff" />
+    <Content Include="css\paintball_web.woff" />
     <None Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
