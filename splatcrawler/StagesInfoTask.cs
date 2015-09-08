@@ -194,7 +194,6 @@ namespace SquidTracker.Crawler
                         if (pollType == PollTypes.Fresh) Console.WriteLine();
                         Console.WriteLine("Inserted leaderboard for {0} to {1}.", records[x].datetime_term_begin, records[x].datetime_term_end);
                     }
-                    else if (pollType != PollTypes.Fresh) Console.WriteLine("Already have leaderboard for {0} to {1}.", records[x].datetime_term_begin, records[x].datetime_term_end);
                 }
                 conn.Close();
 
