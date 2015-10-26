@@ -22,14 +22,27 @@ namespace splatcrawler
             InitializeComponent();
         }
 
+        private Thread m_worker = null;
+        private bool m_should_work;
+
         protected override void OnStart(string[] args)
         {
-            Start();
+            if (m_worker != null) return;
+            m_worker = new Thread(Work);
+            m_should_work = true;
+            m_worker.Start();
         }
 
-        public void Start()
+        protected override void OnStop()
         {
-            // todo: thread me
+            if (m_worker == null) return;
+            m_should_work = false;
+            if (m_worker != null) Thread.Sleep(100);
+            while (m_worker != null) Thread.Sleep(1000);
+        }
+
+        private void Work()
+        {
             DateTime nextPollTime = DateTime.MinValue;
             PollTask[] tasks = new PollTask[]
             {
@@ -37,7 +50,7 @@ namespace splatcrawler
                 new FesInfoTask(),
             };
 
-            while (true)
+            while (m_should_work)
             {
                 try
                 {
@@ -60,10 +73,7 @@ namespace splatcrawler
                 }
                 Thread.Sleep(1000);
             }
-        }
-
-        protected override void OnStop()
-        {
+            m_worker = null;
         }
     }
 }
