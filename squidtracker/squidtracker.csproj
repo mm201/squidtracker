@@ -269,6 +269,10 @@
     <Content Include="images\stages\07_maze.png" />
     <Content Include="images\stages\08_tuzuraori.png" />
     <Content Include="images\stages\09_ruins.png" />
+    <Content Include="images\stages\flounder-heights.png" />
+    <Content Include="images\stages\hammerhead-bridge.png" />
+    <Content Include="images\stages\mahi-mahi-resort.png" />
+    <Content Include="images\stages\museum-d-alfonsino.png" />
     <Content Include="images\stages\next.png" />
     <Content Include="images\stages\blank.png" />
     <Content Include="images\weapons\wst_charge_light00.png" />
