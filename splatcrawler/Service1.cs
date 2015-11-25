@@ -41,7 +41,7 @@ namespace splatcrawler
             while (m_worker != null) Thread.Sleep(1000);
         }
 
-        private void Work()
+        public void Work()
         {
             DateTime nextPollTime = DateTime.MinValue;
             PollTask[] tasks = new PollTask[]
