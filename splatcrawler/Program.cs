@@ -17,7 +17,6 @@ namespace splatcrawler
 #if DEBUG
             Service1 myService = new Service1();
             myService.Work();
-            while (true) { Thread.Sleep(1000); }
 #else
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[] 

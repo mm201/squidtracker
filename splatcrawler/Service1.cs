@@ -43,7 +43,8 @@ namespace splatcrawler
 
         public void Work()
         {
-            DateTime nextPollTime = DateTime.MinValue;
+            m_should_work = true;
+
             PollTask[] tasks = new PollTask[]
             {
                 new StagesInfoTask(),
@@ -71,6 +72,7 @@ namespace splatcrawler
                 {
                     Console.WriteLine(ex.ToString());
                 }
+                // todo: Get the lowest NextPollTime and sleep until then.
                 Thread.Sleep(1000);
             }
             m_worker = null;
