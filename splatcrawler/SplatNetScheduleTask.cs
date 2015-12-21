@@ -80,12 +80,14 @@ namespace SquidTracker.Crawler
     {
         public String Username;
         public String Password;
+        public NnidRegions Region;
         public CookieContainer Cookies = null;
 
-        public Nnid(String username, String password)
+        public Nnid(String username, String password, NnidRegions region)
         {
             Username = username;
             Password = password;
+            Region = region;
             Cookies = new CookieContainer();
         }
 
@@ -124,6 +126,13 @@ namespace SquidTracker.Crawler
         {
             return Uri.EscapeDataString(str);
         }
+    }
+
+    internal enum NnidRegions
+    {
+        Japan,
+        America,
+        Europe
     }
 
     public static class WebRequestExtender

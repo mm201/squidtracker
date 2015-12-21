@@ -19,7 +19,7 @@ namespace SquidTracker.Crawler
         {
             return new Nnid[]
             {
-                new Nnid("username1", "password1"),
+                new Nnid("username1", "password1", NnidRegions.America),
             };
         }
     }
