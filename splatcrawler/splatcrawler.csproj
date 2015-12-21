@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FesInfoTask.cs" />
+    <Compile Include="NnidLogins.cs" />
     <Compile Include="PollTask.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>

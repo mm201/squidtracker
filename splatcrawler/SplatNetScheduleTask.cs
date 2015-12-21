@@ -15,10 +15,7 @@ namespace SquidTracker.Crawler
         }
 
         private int m_active_nnid = 0;
-        private Nnid[] m_nnids = new Nnid[]
-        {
-            new Nnid("username1", "password1"),
-        };
+        private Nnid[] m_nnids = NnidLogins.GetLogins();
 
         private Nnid[] m_secondary_nnids;
 
@@ -117,13 +114,15 @@ namespace SquidTracker.Crawler
 
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
             {
+                // todo: Detect whether login has failed and throw LoginFailedException.
+
                 response.Close();
             }
         }
 
         private String PostEncode(String str)
         {
-            return str;
+            return Uri.EscapeDataString(str);
         }
     }
 
