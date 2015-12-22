@@ -14,24 +14,30 @@ namespace SquidTracker.Crawler
             NextPollTime = DateTime.MinValue;
         }
 
-        private int m_active_nnid = 0;
-        private Nnid[] m_nnids = NnidLogins.GetLogins();
-
-        private Nnid[] m_secondary_nnids;
+        private List<Nnid> m_nnids = NnidLogins.GetLogins();
+        private Dictionary<NnidRegions, Nnid> m_regional_nnids;
+        private Nnid m_primary_nnid;
 
         public override void Run()
         {
             DateTime now = DateTime.UtcNow;
             NextPollTime = now.AddMinutes(5);
 
-            Nnid primaryNnid = m_nnids[m_active_nnid];
+            String schedule = null;
 
-            String schedule = GetSchedule(primaryNnid);
+            for (int x = 0; x < m_nnids.Count; x++)
+            {
+                FindSuitableLogin();
+                schedule = GetSchedule(m_primary_nnid);
+                if (schedule != null) break;
+            }
+
             NextPollTime = now.AddHours(1);
         }
 
         private String GetSchedule(Nnid nnid)
         {
+            DateTime now = DateTime.UtcNow;
             if (nnid.Cookies == null) nnid.Login();
             int status;
             String schedule = RunScheduleRequest(nnid.Cookies, out status);
@@ -41,13 +47,67 @@ namespace SquidTracker.Crawler
                 schedule = RunScheduleRequest(nnid.Cookies, out status);
             }
             Console.WriteLine(schedule);
-            if (status != 200) return null;
-            return schedule;
+
+            if (status == 200)
+            {
+                nnid.LastLoginSuccess = now;
+                return schedule;
+            }
+            else
+            {
+                nnid.LastLoginFailure = now;
+                return null;
+            }
         }
 
         private void FindSuitableLogin()
         {
+            if (m_nnids.Count == 0)
+            {
+                m_regional_nnids = new Dictionary<NnidRegions, Nnid>();
+                m_primary_nnid = null;
+                return;
+            }
 
+            StabilizeNnidCollection(m_nnids);
+            m_nnids.Sort(CompareNnids);
+
+            m_regional_nnids = new Dictionary<NnidRegions, Nnid>();
+            foreach (NnidRegions r in Enum.GetValues(typeof(NnidRegions)))
+            {
+                Nnid nnid = m_nnids.Where(n => n.Region == r).FirstOrDefault();
+                if (nnid == null) continue;
+                m_regional_nnids.Add(nnid.Region, nnid);
+            }
+
+            m_primary_nnid = m_nnids[0];
+        }
+
+        private int CompareNnids(Nnid first, Nnid second)
+        {
+            // The most recently failed login has the lowest priority, so we
+            // end up cycling through NNIDs when they fail. (ascending)
+            int comparison = (first.LastLoginFailure ?? DateTime.MinValue).CompareTo(second.LastLoginFailure ?? DateTime.MinValue);
+            if (comparison != 0) return comparison;
+
+            // Among those which have never failed, keep using the one most
+            // recently used. (descending)
+            comparison = (second.LastLoginSuccess ?? DateTime.MinValue).CompareTo(first.LastLoginSuccess ?? DateTime.MinValue);
+            if (comparison != 0) return comparison;
+
+            // If both conditions are a tie, maintain the established order.
+            // (stable sort)
+            return first.Stabilize.CompareTo(second.Stabilize);
+        }
+
+        private void StabilizeNnidCollection(IEnumerable<Nnid> nnids)
+        {
+            int stabilize = 0;
+            foreach (Nnid nnid in nnids)
+            {
+                nnid.Stabilize = stabilize;
+                stabilize++;
+            }
         }
 
         private String RunScheduleRequest(CookieContainer cc, out int status)
@@ -82,6 +142,9 @@ namespace SquidTracker.Crawler
         public String Password;
         public NnidRegions Region;
         public CookieContainer Cookies = null;
+        public DateTime? LastLoginSuccess = null;
+        public DateTime? LastLoginFailure = null;
+        public int Stabilize = 0;
 
         public Nnid(String username, String password, NnidRegions region)
         {
@@ -133,6 +196,18 @@ namespace SquidTracker.Crawler
         Japan,
         America,
         Europe
+    }
+
+    internal class SplatfestSchedule
+    {
+        DateTime Begin;
+        DateTime End;
+
+        public SplatfestSchedule(DateTime begin, DateTime end)
+        {
+            Begin = begin;
+            End = end;
+        }
     }
 
     public static class WebRequestExtender
