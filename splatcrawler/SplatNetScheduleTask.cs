@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace SquidTracker.Crawler
 {
@@ -20,8 +21,11 @@ namespace SquidTracker.Crawler
 
         public override void Run()
         {
+            const int PRE_EMPT = 10; // seconds before map rotation when we begin polling
+            const int FAST_POLL_RATE = 5; // seconds between polls
+
             DateTime now = DateTime.UtcNow;
-            NextPollTime = now.AddMinutes(5);
+            NextPollTime = now.AddMinutes(30);
 
             String schedule = null;
 
@@ -32,7 +36,13 @@ namespace SquidTracker.Crawler
                 if (schedule != null) break;
             }
 
-            NextPollTime = now.AddHours(1);
+            if (schedule == null)
+            {
+                NextPollTime = now.AddHours(1);
+                return;
+            }
+
+            SplatNetSchedule scheduleParsed = JsonConvert.DeserializeObject<SplatNetSchedule>(schedule);
         }
 
         private String GetSchedule(Nnid nnid)
@@ -198,15 +208,17 @@ namespace SquidTracker.Crawler
         Europe
     }
 
-    internal class SplatfestSchedule
+    internal class RegionInfo
     {
-        DateTime Begin;
-        DateTime End;
+        DateTime ? SplatfestBegin;
+        DateTime ? SplatfestEnd;
+        DateTime ? LastPollTime;
 
-        public SplatfestSchedule(DateTime begin, DateTime end)
+        public RegionInfo(DateTime ? splatfest_begin, DateTime ? splatfest_end, DateTime ? last_poll_time)
         {
-            Begin = begin;
-            End = end;
+            SplatfestBegin = splatfest_begin;
+            SplatfestEnd = splatfest_end;
+            LastPollTime = last_poll_time;
         }
     }
 
@@ -233,5 +245,31 @@ namespace SquidTracker.Crawler
         }
 
         public Nnid Nnid;
+    }
+
+    internal class SplatNetSchedule
+    {
+        public bool festival;
+        public SplatNetEntry[] schedule;
+    }
+
+    internal class SplatNetEntry
+    {
+        public DateTimeOffset datetime_begin;
+        public DateTimeOffset datetime_end;
+        public SplatNetStages stages;
+        public String gachi_rule;
+    }
+
+    internal class SplatNetStages
+    {
+        public SplatNetStage[] regular;
+        public SplatNetStage[] gachi;
+    }
+
+    internal class SplatNetStage
+    {
+        public String asset_path;
+        public String name;
     }
 }
