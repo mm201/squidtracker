@@ -258,30 +258,17 @@
         <div class="squidRightColumn">
             <div class="squidMapsHeading squidHeadingRanked">Current Ranked maps</div>
 
-            <div data-bind="foreach: mapsRanked">
-                <div class="squidMapItem">
+            <div class="squidMapItem">
                 <div class="squidMapPicture">
-                    <img src="images/stages/blank.png" alt=""
-                        data-bind="attr: { src: squidImageSrc($data.id), alt: squidGetName($data.id) }" />
+                <img src="images/stages/blank.png" alt="" />
                 </div>
-                <div class="squidMapTitle" data-bind="text: squidGetName($data.id)">
-
-                </div>
-                </div>
+                <div class="squidMapTitle">Unknown</div>
             </div>
-            <div data-bind="if: isSplatfest">
-                <div class="squidMapItem">
-                    <div class="squidMapPicture">
-                    <img src="images/stages/blank.png" alt="" />
-                    </div>
-                    <div class="squidMapTitle">Unknown</div>
+            <div class="squidMapItem">
+                <div class="squidMapPicture">
+                <img src="images/stages/blank.png" alt="" />
                 </div>
-                <div class="squidMapItem">
-                    <div class="squidMapPicture">
-                    <img src="images/stages/blank.png" alt="" />
-                    </div>
-                    <div class="squidMapTitle">Unknown</div>
-                </div>
+                <div class="squidMapTitle">Unknown</div>
             </div>
         </div>
         <div class="squidMainColumn">
