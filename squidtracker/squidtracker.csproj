@@ -275,6 +275,7 @@
     <Content Include="images\stages\museum-d-alfonsino.png" />
     <Content Include="images\stages\next.png" />
     <Content Include="images\stages\blank.png" />
+    <Content Include="images\stages\piranha-pit.png" />
     <Content Include="images\weapons\wst_charge_light00.png" />
     <Content Include="images\weapons\wst_charge_light01.png" />
     <Content Include="images\weapons\wst_charge_long00.png" />
