@@ -28,7 +28,7 @@ namespace SquidTracker.Web
             StringBuilder builder = new StringBuilder();
             builder.Append("<script type=\"text/javascript\">");
 
-            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_stages ORDER BY filename, identifier"), "squidStages");
+            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_stages ORDER BY id"), "squidStages");
             /*
             WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_gear_head ORDER BY filename, identifier"), "squidGearHead");
             WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_gear_clothes ORDER BY filename, identifier"), "squidGearClothes");
