@@ -269,6 +269,7 @@
     <Content Include="images\stages\07_maze.png" />
     <Content Include="images\stages\08_tuzuraori.png" />
     <Content Include="images\stages\09_ruins.png" />
+    <Content Include="images\stages\ancho-v-games.png" />
     <Content Include="images\stages\flounder-heights.png" />
     <Content Include="images\stages\hammerhead-bridge.png" />
     <Content Include="images\stages\mahi-mahi-resort.png" />
