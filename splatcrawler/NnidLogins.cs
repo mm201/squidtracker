@@ -15,9 +15,9 @@ namespace SquidTracker.Crawler
     /// </summary>
     internal static class NnidLogins
     {
-        internal static Nnid[] GetLogins()
+        internal static List<Nnid> GetLogins()
         {
-            return new Nnid[]
+            return new List<Nnid>()
             {
                 new Nnid("username1", "password1", NnidRegions.America),
             };
