@@ -37,7 +37,7 @@ namespace SquidTracker.Data
 
         private static void LogNetRequest(MySqlConnection conn, String table, String data, bool isValid)
         {
-            DataTable tbl = conn.ExecuteDataTable("SELECT id, data FROM " + table + " ORDER BY end_date DESC");
+            DataTable tbl = conn.ExecuteDataTable("SELECT id, data FROM " + table + " ORDER BY end_date DESC LIMIT 1");
             String prevData = tbl.Rows.Count == 0 ? null : 
                 DatabaseExtender.Cast<String>(tbl.Rows[0]["data"]);
             int ? prevId = tbl.Rows.Count == 0 ? null :
