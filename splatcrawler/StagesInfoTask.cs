@@ -19,6 +19,12 @@ namespace SquidTracker.Crawler
         private PollTypes pollType = PollTypes.Initial;
         private bool freshShortUpdate = false;
 
+        // todo: autodetect whether our gear database is complete or not and
+        // enable more aggressive scraping if useful.
+        // This would require providing outside information such as the total
+        // number of gear items and comparing it to the number in the database.
+        private bool scrapeGear = false;
+
         public override void Run()
         {
             DateTime now = DateTime.UtcNow;
@@ -73,7 +79,7 @@ namespace SquidTracker.Crawler
                         pollType = PollTypes.Fresh;
                         freshShortUpdate = false;
                     }
-                    else if (startTimeUtc.AddHours(1) > now)
+                    else if (scrapeGear && startTimeUtc.AddHours(1) > now)
                     {
                         // This is the first hour of a new leaderboard.
                         // The leaderboard changes more rapidly early on, so we
