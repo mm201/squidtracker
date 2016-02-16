@@ -36,8 +36,7 @@ namespace SquidTracker.Crawler
             DateTime now = DateTime.UtcNow;
             // set the next time to the error time first off, so if an
             // exception happens, this is what we use.
-            DateTime nextAccurate = now.AddMinutes(ERROR_RETRY_INTERVAL); // next poll time before rounding
-            NextPollTime = RoundToMinutes(nextAccurate, ERROR_RETRY_INTERVAL);
+            NextPollTime = CalculateNextPollTime(now, ERROR_RETRY_INTERVAL);
 
             StagesInfoRecord[] records;
             using (WebClient wc = new WebClient())
@@ -84,15 +83,13 @@ namespace SquidTracker.Crawler
                         // The leaderboard changes more rapidly early on, so we
                         // poll more frequently to increase our chance of picking
                         // up weapons/gear not already in the database.
-                        nextAccurate = now.AddMinutes(RAPID_POLL_INTERVAL);
-                        NextPollTime = RoundToMinutes(nextAccurate, RAPID_POLL_INTERVAL);
+                        NextPollTime = CalculateNextPollTime(now, RAPID_POLL_INTERVAL);
                         Console.WriteLine("Next poll at {0:G}.", NextPollTime.ToLocalTime());
                         freshShortUpdate = false;
                     }
                     else
                     {
-                        nextAccurate = now.AddMinutes(AMBIENT_POLL_INTERVAL);
-                        NextPollTime = RoundToMinutes(nextAccurate, AMBIENT_POLL_INTERVAL);
+                        NextPollTime = CalculateNextPollTime(now, AMBIENT_POLL_INTERVAL);
                         Console.WriteLine("Next poll at {0:G}.", NextPollTime.ToLocalTime());
                         freshShortUpdate = false;
                     }
@@ -247,6 +244,11 @@ namespace SquidTracker.Crawler
         {
             DateTime dateComponent = date.Date;
             return dateComponent.AddMinutes(((int)((date - dateComponent).TotalMinutes / minutes)) * minutes);
+        }
+
+        public static DateTime CalculateNextPollTime(DateTime now, int minutes)
+        {
+            return RoundToMinutes(now.AddMinutes(minutes), minutes);
         }
 
         public static StagesInfoRecord[] GetStagesInfo(String data)
