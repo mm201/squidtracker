@@ -25,10 +25,18 @@ namespace SquidTracker.Crawler
         // number of gear items and comparing it to the number in the database.
         private bool scrapeGear = false;
 
+        private const int ERROR_RETRY_INTERVAL = 10; // minutes after an error when we try again
+        private const int AMBIENT_POLL_INTERVAL = 120; // minutes between successful polls
+        private const int RAPID_POLL_INTERVAL = 10; // minutes between polls when scraping gear data
+        private const int PRE_EMPT = 10; // seconds before map rotation when we begin polling
+        private const int FAST_POLL_INTERVAL = 5; // seconds between polls when a new rotation is imminent
+
         public override void Run()
         {
             DateTime now = DateTime.UtcNow;
-            DateTime nextAccurate = now.AddMinutes(30); // next poll time before rounding
+            // set the next time to the error time first off, so if an
+            // exception happens, this is what we use.
+            DateTime nextAccurate = now.AddMinutes(ERROR_RETRY_INTERVAL); // next poll time before rounding
             NextPollTime = new DateTime(
                 nextAccurate.Year,
                 nextAccurate.Month,
@@ -50,8 +58,6 @@ namespace SquidTracker.Crawler
 
             if (records != null && records.Length > 0)
             {
-                const int PRE_EMPT = 10; // seconds before map rotation when we begin polling
-                const int FAST_POLL_RATE = 5; // seconds between polls
                 TimeZoneInfo tzi = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
                 StagesInfoRecord record = records[0];
                 if (IsRecordValid(record))
@@ -62,7 +68,7 @@ namespace SquidTracker.Crawler
                     if (endTimePreEmpt < now)
                     {
                         // received data is stale so we are polling
-                        NextPollTime = now.AddSeconds(FAST_POLL_RATE);
+                        NextPollTime = now.AddSeconds(FAST_POLL_INTERVAL);
                         if (freshShortUpdate)
                             Console.Write(".");
                         else
@@ -85,7 +91,6 @@ namespace SquidTracker.Crawler
                         // The leaderboard changes more rapidly early on, so we
                         // poll more frequently to increase our chance of picking
                         // up weapons/gear not already in the database.
-                        const int RAPID_POLL_INTERVAL = 10;
                         nextAccurate = now.AddMinutes(RAPID_POLL_INTERVAL);
                         int minute = (nextAccurate.Minute / RAPID_POLL_INTERVAL) * RAPID_POLL_INTERVAL;
                         NextPollTime = new DateTime(
@@ -101,6 +106,15 @@ namespace SquidTracker.Crawler
                     }
                     else
                     {
+                        nextAccurate = now.AddMinutes(AMBIENT_POLL_INTERVAL);
+                        NextPollTime = new DateTime(
+                            nextAccurate.Year,
+                            nextAccurate.Month,
+                            nextAccurate.Day,
+                            nextAccurate.Hour,
+                            nextAccurate.Minute >= 30 ? 30 : 0,
+                            0,
+                            nextAccurate.Kind);
                         Console.WriteLine("Next poll at {0:G}.", NextPollTime.ToLocalTime());
                         freshShortUpdate = false;
                     }
