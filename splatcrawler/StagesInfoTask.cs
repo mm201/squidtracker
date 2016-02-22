@@ -20,6 +20,8 @@ namespace SquidTracker.Crawler
         private PollTypes pollType = PollTypes.Initial;
         private bool freshShortUpdate = false;
 
+        public FesInfoTask FesInfoTask { get; set; }
+
         // todo: autodetect whether our gear database is complete or not and
         // enable more aggressive scraping if useful.
         // This would require providing outside information such as the total
@@ -61,6 +63,9 @@ namespace SquidTracker.Crawler
                     if (endTimePreEmpt < now)
                     {
                         // received data is stale so we are polling
+                        // xxx: we need a rapid give-up time so that if the
+                        // response format changes or something, we don't end up
+                        // hammering the server indefinitely.
                         NextPollTime = now.AddSeconds(FAST_POLL_INTERVAL);
                         if (freshShortUpdate)
                             Console.Write(".");
@@ -90,6 +95,39 @@ namespace SquidTracker.Crawler
                     }
                     else
                     {
+                        Console.WriteLine("Next poll at {0:G}.", NextPollTime.ToLocalTime());
+                        freshShortUpdate = false;
+                    }
+                }
+                else if (FesInfoTask != null && FesInfoTask.LastRecord != null)
+                {
+                    FesInfoRecord lastRecord = FesInfoTask.LastRecord;
+                    DateTime endTimeUtc = TokyoToUtc((DateTime)lastRecord.datetime_fes_end);
+                    DateTime endTimePreEmpt = endTimeUtc.AddSeconds(-PRE_EMPT);
+
+                    if (endTimePreEmpt < now)
+                    {
+                        // Splatfest just ended so get back on the ball asap.
+                        NextPollTime = now.AddSeconds(FAST_POLL_INTERVAL);
+                        if (freshShortUpdate)
+                            Console.Write(".");
+                        else
+                            Console.Write("Waiting for new maps.");
+                        pollType = PollTypes.Fresh;
+
+                        freshShortUpdate = true;
+                    }
+                    else if (endTimePreEmpt < NextPollTime)
+                    {
+                        // end of splatfest comes sooner than ambient polling
+                        NextPollTime = endTimePreEmpt;
+                        Console.WriteLine("Polling for fresh maps at {0:G}.", NextPollTime.ToLocalTime());
+                        pollType = PollTypes.Fresh;
+                        freshShortUpdate = false;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Server isn't providing data.");
                         Console.WriteLine("Next poll at {0:G}.", NextPollTime.ToLocalTime());
                         freshShortUpdate = false;
                     }

@@ -45,10 +45,15 @@ namespace splatcrawler
         {
             m_should_work = true;
 
+            StagesInfoTask theStagesInfoTask = new StagesInfoTask();
+            FesInfoTask theFesInfoTask = new FesInfoTask();
+            theStagesInfoTask.FesInfoTask = theFesInfoTask;
+
             PollTask[] tasks = new PollTask[]
             {
-                new StagesInfoTask(),
-                new FesInfoTask(),
+                theStagesInfoTask,
+                theFesInfoTask,
+                //new SplatNetScheduleTask()
             };
 
             while (m_should_work)
