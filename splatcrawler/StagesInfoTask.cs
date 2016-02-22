@@ -51,13 +51,12 @@ namespace SquidTracker.Crawler
 
             if (records != null && records.Length > 0)
             {
-                TimeZoneInfo tzi = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
                 StagesInfoRecord record = records[0];
                 if (IsRecordValid(record))
                 {
-                    DateTime endTimeUtc = TimeZoneInfo.ConvertTimeToUtc((DateTime)record.datetime_term_end, tzi);
+                    DateTime endTimeUtc = TokyoToUtc((DateTime)record.datetime_term_end);
                     DateTime endTimePreEmpt = endTimeUtc.AddSeconds(-PRE_EMPT);
-                    DateTime startTimeUtc = TimeZoneInfo.ConvertTimeToUtc((DateTime)record.datetime_term_begin, tzi);
+                    DateTime startTimeUtc = TokyoToUtc((DateTime)record.datetime_term_begin);
                     if (endTimePreEmpt < now)
                     {
                         // received data is stale so we are polling
@@ -232,23 +231,6 @@ namespace SquidTracker.Crawler
             {
                 Console.WriteLine("Inserted leaderboard for {0} to {1}.", record.datetime_term_begin, record.datetime_term_end);
             }
-        }
-
-        public static DateTime TokyoToUtc(DateTime date)
-        {
-            TimeZoneInfo tzi = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
-            return TimeZoneInfo.ConvertTimeToUtc(date);
-        }
-
-        public static DateTime RoundToMinutes(DateTime date, int minutes)
-        {
-            DateTime dateComponent = date.Date;
-            return dateComponent.AddMinutes(((int)((date - dateComponent).TotalMinutes / minutes)) * minutes);
-        }
-
-        public static DateTime CalculateNextPollTime(DateTime now, int minutes)
-        {
-            return RoundToMinutes(now.AddMinutes(minutes), minutes);
         }
 
         public static StagesInfoRecord[] GetStagesInfo(String data)
