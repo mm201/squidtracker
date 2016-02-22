@@ -73,24 +73,29 @@ namespace SquidTracker.Crawler
 
             try
             {
+                FesInfoRecord prevRecord = LastRecord;
                 LastRecord = JsonConvert.DeserializeObject<FesInfoRecord>(fes_info);
-                switch (LastRecord.fes_state)
-                {
-                    case 0:
-                        Console.Write("Upcoming");
-                        break;
-                    case 1:
-                        Console.Write("Ongoing");
-                        break;
-                    case -1:
-                        Console.Write("Completed");
-                        break;
-                }
 
                 if (!freshShortUpdate)
                 {
-                    Console.WriteLine(" Splatfest at {0:G} to {1:G}.", LastRecord.datetime_fes_begin, LastRecord.datetime_fes_end);
-                    Console.WriteLine("{0} vs. {1}", LastRecord.team_alpha_name, LastRecord.team_bravo_name);
+                    if (prevRecord != null && prevRecord.fes_state == -1 && LastRecord.fes_state != -1)
+                    {
+                        Console.WriteLine("New Splatfest announced: {0} vs. {1}", LastRecord.team_alpha_name, LastRecord.team_bravo_name);
+                    }
+                    switch (LastRecord.fes_state)
+                    {
+                        case 0:
+                            Console.Write("Upcoming Splatfest at ");
+                            break;
+                        case 1:
+                            Console.Write("Ongoing Splatfest at ");
+                            break;
+                        case -1:
+                            Console.Write("Completed Splatfest at ");
+                            break;
+                    }
+
+                    Console.WriteLine("{0:G} to {1:G}.", LastRecord.datetime_fes_begin, LastRecord.datetime_fes_end);
                 }
             }
             catch
