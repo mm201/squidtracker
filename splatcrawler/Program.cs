@@ -15,6 +15,7 @@ namespace splatcrawler
         static void Main()
         {
 #if DEBUG
+            Console.OutputEncoding = Encoding.UTF8;
             Service1 myService = new Service1();
             myService.Work();
 #else
