@@ -47,6 +47,7 @@ namespace SquidTracker.Crawler
             }
 
             pollType = PollTypes.Ambient;
+            NextPollTime = CalculateNextPollTime(now, AMBIENT_POLL_INTERVAL);
 
             if (records != null && records.Length > 0)
             {
@@ -89,7 +90,6 @@ namespace SquidTracker.Crawler
                     }
                     else
                     {
-                        NextPollTime = CalculateNextPollTime(now, AMBIENT_POLL_INTERVAL);
                         Console.WriteLine("Next poll at {0:G}.", NextPollTime.ToLocalTime());
                         freshShortUpdate = false;
                     }
