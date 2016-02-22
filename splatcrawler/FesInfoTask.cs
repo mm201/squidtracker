@@ -16,20 +16,21 @@ namespace SquidTracker.Crawler
             NextPollTime = DateTime.MinValue;
         }
 
+        // these two variables are only used for tidy console display.
+        private PollTypes pollType = PollTypes.Initial;
+        private bool freshShortUpdate = false;
+
         public FesInfoRecord LastRecord { get; private set; }
+
+        private const int ERROR_RETRY_INTERVAL = 60; // minutes after an error when we try again
+        private const int AMBIENT_POLL_INTERVAL = 1440; // minutes between successful polls
+        private const int PRE_EMPT = 10; // seconds before Splatfest begins when we start quick polling to discover maps
+        private const int FAST_POLL_INTERVAL = 5; // seconds between quick polls just before splatfest begins
 
         public override void Run()
         {
             DateTime now = DateTime.UtcNow;
-            DateTime nextAccurate = now.AddMinutes(30); // next poll time before rounding
-            NextPollTime = new DateTime(
-                nextAccurate.Year,
-                nextAccurate.Month,
-                nextAccurate.Day,
-                nextAccurate.Hour,
-                nextAccurate.Minute >= 30 ? 30 : 0,
-                0,
-                nextAccurate.Kind);
+            NextPollTime = CalculateNextPollTime(now, ERROR_RETRY_INTERVAL);
 
             String fes_info = null, fes_result = null, recent_results = null, contribution_ranking = null;
             using (WebClient wc = new WebClient())
@@ -85,19 +86,24 @@ namespace SquidTracker.Crawler
                         break;
                 }
 
-                Console.WriteLine(" Splatfest at {0:G} to {1:G}.", LastRecord.datetime_fes_begin, LastRecord.datetime_fes_end);
-                Console.WriteLine("{0} vs. {1}", LastRecord.team_alpha_name, LastRecord.team_bravo_name);
+                if (!freshShortUpdate)
+                {
+                    Console.WriteLine(" Splatfest at {0:G} to {1:G}.", LastRecord.datetime_fes_begin, LastRecord.datetime_fes_end);
+                    Console.WriteLine("{0} vs. {1}", LastRecord.team_alpha_name, LastRecord.team_bravo_name);
+                }
             }
             catch
             {
                 LastRecord = null;
             }
 
+            bool recordValid = IsRecordValid(LastRecord);
+
             using (MySqlConnection conn = Database.CreateConnection())
             {
                 conn.Open();
                 if (fes_info != null)
-                    Database.LogFesInfo(conn, fes_info, true);
+                    Database.LogFesInfo(conn, fes_info, recordValid);
                 if (fes_result != null)
                     Database.LogFesResult(conn, fes_result, false);
                 if (recent_results != null)
@@ -106,6 +112,56 @@ namespace SquidTracker.Crawler
                     ProcessContributionRanking(conn, contribution_ranking);
                 conn.Close();
             }
+
+            pollType = PollTypes.Ambient;
+            NextPollTime = CalculateNextPollTime(now, AMBIENT_POLL_INTERVAL);
+
+            if (recordValid)
+            {
+                DateTime endTimeUtc = TokyoToUtc((DateTime)LastRecord.datetime_fes_end);
+                DateTime endTimePreEmpt = endTimeUtc.AddSeconds(-PRE_EMPT);
+                int fesState = LastRecord.fes_state;
+
+                if (fesState == 0 && endTimePreEmpt < now)
+                {
+                    // received data is stale so we are polling
+                    NextPollTime = now.AddSeconds(FAST_POLL_INTERVAL);
+                    if (freshShortUpdate)
+                        Console.Write(".");
+                    else
+                        Console.Write("Waiting for Splatfest data.");
+                    pollType = PollTypes.Fresh;
+
+                    freshShortUpdate = true;
+                }
+                else if (fesState == 0 && endTimePreEmpt < NextPollTime)
+                {
+                    // end of rotation comes sooner than ambient polling
+                    NextPollTime = endTimePreEmpt;
+                    Console.WriteLine("Polling for Splatfest data at {0:G}.", NextPollTime.ToLocalTime());
+                    pollType = PollTypes.Fresh;
+                    freshShortUpdate = false;
+                }
+                else
+                {
+                    Console.WriteLine("Next Splatfest poll at {0:G}.", NextPollTime.ToLocalTime());
+                    freshShortUpdate = false;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Splatfest information unavailable.");
+                Console.WriteLine("Next Splatfest poll at {0:G}.", NextPollTime.ToLocalTime());
+                freshShortUpdate = false;
+            }
+        }
+
+        private bool IsRecordValid(FesInfoRecord record)
+        {
+            return record != null
+                //&& new int[] { -1, 0, 1}.Contains(record.fes_state)
+                && record.fes_state <= 1 && record.fes_state >= -1
+                && record.datetime_fes_begin != null && record.datetime_fes_end != null;
         }
 
         private void ProcessContributionRanking(MySqlConnection conn, String data)

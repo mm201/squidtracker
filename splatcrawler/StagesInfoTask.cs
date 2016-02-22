@@ -16,6 +16,7 @@ namespace SquidTracker.Crawler
             NextPollTime = DateTime.MinValue;
         }
 
+        // these two variables are only used for tidy console display.
         private PollTypes pollType = PollTypes.Initial;
         private bool freshShortUpdate = false;
 
