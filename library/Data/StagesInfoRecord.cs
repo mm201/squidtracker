@@ -33,4 +33,15 @@ namespace SquidTracker.Data
         public String win_team_name;
         public String win_team_mvp;
     }
+
+    public class FesInfoRecord
+    {
+        public int fes_state;
+        public StageRecord[] fes_stages;
+        public String fes_id;
+        public DateTime? datetime_fes_begin;
+        public DateTime? datetime_fes_end;
+        public String team_alpha_name;
+        public String team_bravo_name;
+    }
 }

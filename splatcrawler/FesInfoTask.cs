@@ -16,6 +16,8 @@ namespace SquidTracker.Crawler
             NextPollTime = DateTime.MinValue;
         }
 
+        public FesInfoRecord LastRecord { get; private set; }
+
         public override void Run()
         {
             DateTime now = DateTime.UtcNow;
@@ -65,6 +67,30 @@ namespace SquidTracker.Crawler
                 {
                     Console.WriteLine(ex.ToString());
                 }
+            }
+
+            try
+            {
+                LastRecord = JsonConvert.DeserializeObject<FesInfoRecord>(fes_info);
+                switch (LastRecord.fes_state)
+                {
+                    case 0:
+                        Console.Write("Upcoming");
+                        break;
+                    case 1:
+                        Console.Write("Ongoing");
+                        break;
+                    case -1:
+                        Console.Write("Completed");
+                        break;
+                }
+
+                Console.WriteLine(" Splatfest at {0:G} to {1:G}.", LastRecord.datetime_fes_begin, LastRecord.datetime_fes_end);
+                Console.WriteLine("{0} vs. {1}", LastRecord.team_alpha_name, LastRecord.team_bravo_name);
+            }
+            catch
+            {
+                LastRecord = null;
             }
 
             using (MySqlConnection conn = Database.CreateConnection())
