@@ -24,6 +24,7 @@ namespace SquidTracker.Crawler
 
         private const int ERROR_RETRY_INTERVAL = 60; // minutes after an error when we try again
         private const int AMBIENT_POLL_INTERVAL = 1440; // minutes between successful polls
+        private const int RAPID_POLL_INTERVAL = 30; // minutes between recent_results polls
         private const int PRE_EMPT = 10; // seconds before Splatfest begins when we start quick polling to discover maps
         private const int FAST_POLL_INTERVAL = 5; // seconds between quick polls just before splatfest begins
 
@@ -140,6 +141,12 @@ namespace SquidTracker.Crawler
                     NextPollTime = endTimePreEmpt;
                     Console.WriteLine("Polling for Splatfest data at {0:G}.", NextPollTime.ToLocalTime());
                     pollType = PollTypes.Fresh;
+                    freshShortUpdate = false;
+                }
+                else if (fesState == 1)
+                {
+                    NextPollTime = CalculateNextPollTime(now, RAPID_POLL_INTERVAL);
+                    Console.WriteLine("Next Splatfest poll at {0:G}.", NextPollTime.ToLocalTime());
                     freshShortUpdate = false;
                 }
                 else
