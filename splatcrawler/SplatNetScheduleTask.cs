@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
+using SquidTracker.Data;
 
 namespace SquidTracker.Crawler
 {
@@ -245,31 +246,5 @@ namespace SquidTracker.Crawler
         }
 
         public Nnid Nnid;
-    }
-
-    internal class SplatNetSchedule
-    {
-        public bool festival;
-        public SplatNetEntry[] schedule;
-    }
-
-    internal class SplatNetEntry
-    {
-        public DateTimeOffset datetime_begin;
-        public DateTimeOffset datetime_end;
-        public SplatNetStages stages;
-        public String gachi_rule;
-    }
-
-    internal class SplatNetStages
-    {
-        public SplatNetStage[] regular;
-        public SplatNetStage[] gachi;
-    }
-
-    internal class SplatNetStage
-    {
-        public String asset_path;
-        public String name;
     }
 }
