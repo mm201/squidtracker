@@ -17,6 +17,11 @@ namespace SquidTracker.Data
         public DateTimeOffset datetime_end;
         public SplatNetStages stages;
         public String gachi_rule;
+
+        public TimeSpan Duration()
+        {
+            return datetime_end - datetime_begin;
+        }
     }
 
     public class SplatNetStages
