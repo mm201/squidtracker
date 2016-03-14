@@ -224,7 +224,7 @@ namespace SquidTracker.Crawler
 
         private static SplatNetSchedule MergeSchedules(Dictionary<NnidRegions, RegionInfo> region_infos)
         {
-
+            throw new NotImplementedException();
         }
 
         private static void LogSchedule(MySqlConnection conn, SplatNetSchedule schedule)
