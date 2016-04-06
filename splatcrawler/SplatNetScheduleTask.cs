@@ -19,13 +19,13 @@ namespace SquidTracker.Crawler
         }
 
         private List<Nnid> m_nnids = NnidLogins.GetLogins();
-        private Nnid m_primary_nnid;
 
         private Dictionary<NnidRegions, RegionInfo> m_region_infos;
         private NnidRegions[] REGIONS = (NnidRegions[])Enum.GetValues(typeof(NnidRegions));
 
         private const int ERROR_RETRY_INTERVAL = 10; // minutes after an error when we try again
         private const int AMBIENT_POLL_INTERVAL = 120; // minutes between successful polls
+        private const int REGIONAL_POLL_INTERVAL = 475; // minutes before we poll a region no matter what (so that we autodetect its splatfest)
         private const int PRE_EMPT = 10; // seconds before map rotation when we begin polling
         private const int FAST_POLL_INTERVAL = 5; // seconds between polls when a new rotation is imminent
 
@@ -37,31 +37,39 @@ namespace SquidTracker.Crawler
             SplatNetSchedule schedule = null;
 
             List<Nnid> working = m_nnids.ToList();
+            bool runOnce = true;
 
             while (working.Count > 0)
             {
-                Nnid suitableNnid = FindSuitableLogin(working, m_region_infos);
+                Nnid suitableNnid = FindSuitableLogin(working);
                 NnidRegions suitableRegion = suitableNnid.Region;
                 RegionInfo suitableRegionInfo = m_region_infos[suitableRegion];
 
-                String response = GetSchedule(suitableNnid);
+                String response = GetSchedule(suitableNnid, now);
                 if (response == null)
                 {
                     working.Remove(suitableNnid);
                     continue;
                 }
 
-                // fixme: this crashes when attempting to parse Splatfest data
-                // because the "schedule" field has a different structure.
-                // We need to detect splatfest status BEFORE parsing via magic circular logic
-                // Parse just the first level of the structure then give different types depending
-                schedule = JsonConvert.DeserializeObject<SplatNetSchedule>(response);
-                ProcessSchedule(suitableRegion, suitableRegionInfo, schedule);
+                schedule = SplatNetSchedule.Parse(response);
+                ProcessSchedule(suitableRegionInfo, schedule, suitableNnid, now);
                 working.RemoveAll(n => n.Region == suitableNnid.Region);
 
-                if (suitableRegionInfo.SplatfestBegin == null &&
+                // Stop as soon as we hit a guaranteed complete schedule.
+                if (runOnce && suitableRegionInfo.SplatfestBegin == null &&
                     suitableRegionInfo.SplatfestEnd == null)
-                    break;
+                {
+                    runOnce = false;
+                    foreach (var pair in m_region_infos)
+                    {
+                        RegionInfo r = pair.Value;
+                        if (r.LastPollTime != null && now - r.LastPollTime < TimeSpan.FromMinutes(REGIONAL_POLL_INTERVAL))
+                        {
+                            working.RemoveAll(n => n.Region == pair.Key);
+                        }
+                    }
+                }
             }
 
             if (schedule == null)
@@ -69,31 +77,18 @@ namespace SquidTracker.Crawler
                 NextPollTime = CalculateNextPollTime(now, ERROR_RETRY_INTERVAL);
                 return;
             }
+
+            SplatNetSchedule finalSchedule = ReconcileSchedules(m_region_infos);
+            // todo: database the schedule.
+            // todo: database splatfest information.
         }
 
-        private static Nnid FindSuitableLogin(List<Nnid> working, Dictionary<NnidRegions, RegionInfo> region_infos)
+        private static Nnid FindSuitableLogin(List<Nnid> working)
         {
             if (working.Count == 0)
-            {
-                foreach (RegionInfo info in region_infos.Values)
-                    info.Nnid = null;
                 return null;
-            }
 
             SortNnids(working);
-
-            foreach (var pair in region_infos)
-            {
-                NnidRegions r = pair.Key;
-                Nnid nnid = working.Where(n => n.Region == r).FirstOrDefault();
-                if (nnid == null)
-                {
-                    pair.Value.Nnid = null;
-                    continue;
-                }
-                pair.Value.Nnid = nnid;
-            }
-
             return working[0];
         }
 
@@ -132,9 +127,8 @@ namespace SquidTracker.Crawler
             }
         }
 
-        private static String GetSchedule(Nnid nnid)
+        private static String GetSchedule(Nnid nnid, DateTime now)
         {
-            DateTime now = DateTime.UtcNow;
             if (nnid.Cookies == null) nnid.Login();
             int status;
             String schedule = RunScheduleRequest(nnid.Cookies, out status);
@@ -182,16 +176,23 @@ namespace SquidTracker.Crawler
             return result;
         }
 
-        private static void ProcessSchedule(NnidRegions region, RegionInfo region_info, SplatNetSchedule schedule)
+        private static void ProcessSchedule(RegionInfo region_info, SplatNetSchedule schedule, Nnid nnid, DateTime now)
         {
-            if (schedule.schedule.Length == 0)
-            {
-                region_info.LastSchedule = null;
-                return;
-            }
+            region_info.LastSchedule = schedule;
+            region_info.Nnid = nnid;
+            region_info.LastPollTime = now;
+            region_info.ScheduleProcessed = false;
 
-            SplatNetEntry first = schedule.schedule[0];
-            SplatNetEntry last = schedule.schedule[schedule.schedule.Length - 1];
+            NnidRegions region = nnid.Region;
+
+            if (schedule.Entries.Count == 0)
+                return;
+
+            SplatNetEntry first = schedule.Entries[0];
+            SplatNetEntry last = schedule.Entries[schedule.Entries.Count - 1];
+
+            region_info.SplatfestBegin = null;
+            region_info.SplatfestEnd = null;
 
             if (schedule.festival)
             {
@@ -200,19 +201,78 @@ namespace SquidTracker.Crawler
             }
             else
             {
-                if (schedule.schedule.Length < 3 ||
-                    schedule.schedule[1].Duration() != schedule.schedule[2].Duration())
+                if (schedule.Entries.Count < 3 ||
+                    schedule.Entries[1].Duration() != schedule.Entries[2].Duration())
                 {
-                    region_info.SplatfestEnd = null;
+                    // Fewer than 3 entries means upcoming splafest.
+                    // Exactly 3 entries but the last one is short also means upcoming splatfest.
                     region_info.SplatfestBegin = last.datetime_end.UtcDateTime;
                 }
-                else if (schedule.schedule[0].Duration() != schedule.schedule[1].Duration())
+                else if (schedule.Entries[0].Duration() != schedule.Entries[1].Duration())
                 {
-                    region_info.SplatfestBegin = null;
+                    // Exactly 3 entries but the first being short means a splatfest just finished.
                     region_info.SplatfestEnd = first.datetime_begin.UtcDateTime;
                 }
                 region_info.LastSchedule = schedule;
             }
+        }
+
+        private static SplatNetSchedule ReconcileSchedules(Dictionary<NnidRegions, RegionInfo> region_infos)
+        {
+            SplatNetScheduleRegular result = null;
+            foreach (var region in region_infos.Values)
+            {
+                // don't reprocess schedules which have already been processed.
+                if (region.ScheduleProcessed) continue;
+                region.ScheduleProcessed = true;
+
+                SplatNetScheduleRegular regular = region.LastSchedule as SplatNetScheduleRegular;
+                if (regular == null) continue;
+                if (result == null)
+                {
+                    result = regular;
+                    continue;
+                }
+
+                foreach (var entry in regular.schedule)
+                {
+                    SplatNetEntryRegular toMerge = result.schedule.FirstOrDefault(mergeEntry =>
+                        CompareScheduleTimes(mergeEntry, entry) &&
+                        CompareScheduleMaps(mergeEntry, entry));
+                }
+            }
+
+            return result;
+        }
+
+        private static bool CompareScheduleTimes(SplatNetEntry first, SplatNetEntry second)
+        {
+            return first.datetime_end > second.datetime_begin &&
+                second.datetime_end > first.datetime_begin;
+        }
+
+        private static bool CompareScheduleMaps(SplatNetEntryRegular first, SplatNetEntryRegular second)
+        {
+            if (first.gachi_rule != second.gachi_rule) return false;
+            if (!CompareSplatNetStageArrays(first.stages.regular, second.stages.regular)) return false;
+            if (!CompareSplatNetStageArrays(first.stages.gachi, second.stages.gachi)) return false;
+            return true;
+        }
+
+        private static bool CompareSplatNetStageArrays(SplatNetStage[] first, SplatNetStage[] second)
+        {
+            if (first.Length != second.Length) return false;
+            int count = first.Length;
+            for (int x = 0; x < count; x++)
+            {
+                if (!CompareSplatNetStages(first[x], second[x])) return false;
+            }
+            return true;
+        }
+
+        private static bool CompareSplatNetStages(SplatNetStage first, SplatNetStage second)
+        {
+            return first.asset_path == second.asset_path;
         }
 
         private static void FlagRegionInvalid(RegionInfo region_info)
@@ -220,11 +280,6 @@ namespace SquidTracker.Crawler
             region_info.LastSchedule = null;
             region_info.SplatfestBegin = null;
             region_info.SplatfestEnd = null;
-        }
-
-        private static SplatNetSchedule MergeSchedules(Dictionary<NnidRegions, RegionInfo> region_infos)
-        {
-            throw new NotImplementedException();
         }
 
         private static void LogSchedule(MySqlConnection conn, SplatNetSchedule schedule)
@@ -302,6 +357,7 @@ namespace SquidTracker.Crawler
         public DateTime? LastPollTime = null;
         public SplatNetSchedule LastSchedule = null;
         public Nnid Nnid = null;
+        public bool ScheduleProcessed = false;
 
         public RegionInfo()
         {
