@@ -78,8 +78,29 @@ namespace SquidTracker.Crawler
                 return;
             }
 
-            SplatNetSchedule finalSchedule = ReconcileSchedules(m_region_infos);
+            SplatNetScheduleRegular finalSchedule = ReconcileSchedules(m_region_infos);
             // todo: database the schedule.
+
+            using (MySqlConnection conn = Database.CreateConnection())
+            {
+                conn.Open();
+
+                foreach (SplatNetEntryRegular entry in finalSchedule.schedule)
+                {
+                    // todo:
+                    // obtain intersecting schedule from the database.
+                    // If none found, insert this entry.
+                    // If one is found, merge it with this one, ie. use min(startDates), max(endDates)
+
+                    DateTime begin = entry.datetime_begin.UtcDateTime;
+                    DateTime end = entry.datetime_end.UtcDateTime;
+                    string[] regular = entry.stages.regular.Select(s => s.Identifier()).ToArray();
+                    string[] gachi = entry.stages.gachi.Select(s => s.Identifier()).ToArray();
+                }
+
+                conn.Close();
+            }
+
             // todo: database splatfest information.
         }
 
@@ -217,7 +238,7 @@ namespace SquidTracker.Crawler
             }
         }
 
-        private static SplatNetSchedule ReconcileSchedules(Dictionary<NnidRegions, RegionInfo> region_infos)
+        private static SplatNetScheduleRegular ReconcileSchedules(Dictionary<NnidRegions, RegionInfo> region_infos)
         {
             SplatNetScheduleRegular result = null;
             foreach (var region in region_infos.Values)
@@ -234,15 +255,51 @@ namespace SquidTracker.Crawler
                     continue;
                 }
 
-                foreach (var entry in regular.schedule)
+                List<SplatNetEntryRegular> newSchedule = new List<SplatNetEntryRegular>(result.schedule);
+
+                foreach (SplatNetEntryRegular entry in regular.schedule)
                 {
-                    SplatNetEntryRegular toMerge = result.schedule.FirstOrDefault(mergeEntry =>
-                        CompareScheduleTimes(mergeEntry, entry) &&
-                        CompareScheduleMaps(mergeEntry, entry));
+                    foreach (SplatNetEntryRegular existEntry in result.schedule.Where(mergeEntry =>
+                        CompareScheduleTimes(mergeEntry, entry)))
+                    {
+                        if (!CompareScheduleMaps(existEntry, entry))
+                        {
+                            try
+                            {
+                                Console.WriteLine(String.Format(
+                                    "Conflicting schedule data found.\n" +
+                                    "Time: {0}-{1}\n" +
+                                    "Maps A:{2},{3} Mode:{4}\n" +
+                                    "Maps B:{5},{6} Mode:{7}",
+                                    existEntry.datetime_begin, existEntry.datetime_end,
+                                    CommaStages(existEntry.stages.regular),
+                                    CommaStages(existEntry.stages.gachi), existEntry.gachi_rule,
+                                    CommaStages(entry.stages.regular),
+                                    CommaStages(entry.stages.gachi), entry.gachi_rule));
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.ToString());
+                            }
+                            continue;
+                        }
+
+                        newSchedule.Remove(existEntry);
+                        entry.datetime_begin = Min(existEntry.datetime_begin, entry.datetime_begin);
+                        entry.datetime_end = Max(existEntry.datetime_end, entry.datetime_end);
+                    }
+                    newSchedule.Add(entry);
                 }
+
+                result.schedule = newSchedule.ToArray();
             }
 
             return result;
+        }
+
+        private static string CommaStages(SplatNetStage[] stages)
+        {
+            return String.Join(",", stages.Select(s => (s.Identifier() ?? "??").Substring(0, 2)).ToArray());
         }
 
         private static bool CompareScheduleTimes(SplatNetEntry first, SplatNetEntry second)
@@ -272,7 +329,7 @@ namespace SquidTracker.Crawler
 
         private static bool CompareSplatNetStages(SplatNetStage first, SplatNetStage second)
         {
-            return first.asset_path == second.asset_path;
+            return first.Identifier() == second.Identifier();
         }
 
         private static void FlagRegionInvalid(RegionInfo region_info)
@@ -280,6 +337,16 @@ namespace SquidTracker.Crawler
             region_info.LastSchedule = null;
             region_info.SplatfestBegin = null;
             region_info.SplatfestEnd = null;
+        }
+
+        private static T Min<T>(T first, T second) where T : IComparable<T>
+        {
+            return (first.CompareTo(second) > 0) ? second : first;
+        }
+
+        private static T Max<T>(T first, T second) where T : IComparable<T>
+        {
+            return (first.CompareTo(second) > 0) ? first : second;
         }
 
         private static void LogSchedule(MySqlConnection conn, SplatNetSchedule schedule)
