@@ -45,7 +45,7 @@ namespace SquidTracker.Crawler
             using (WebClient wc = new WebClient())
             {
                 wc.Encoding = Encoding.UTF8;
-                String data = wc.DownloadString("http://s3-ap-northeast-1.amazonaws.com/splatoon-data.nintendo.net/stages_info.json");
+                string data = wc.DownloadString("http://s3-ap-northeast-1.amazonaws.com/splatoon-data.nintendo.net/stages_info.json");
                 records = ProcessStagesInfo(data, pollType);
             }
 
@@ -147,7 +147,7 @@ namespace SquidTracker.Crawler
             }
         }
 
-        private static StagesInfoRecord[] ProcessStagesInfo(String data, PollTypes pollType)
+        private static StagesInfoRecord[] ProcessStagesInfo(string data, PollTypes pollType)
         {
             using (MySqlConnection conn = Database.CreateConnection())
             {
@@ -253,7 +253,7 @@ namespace SquidTracker.Crawler
 
         private static void InsertMissingLeaderboard(MySqlConnection conn)
         {
-            String lastValidPoll = DatabaseExtender.Cast<String>(conn.ExecuteScalar("SELECT data FROM squid_logs_stages_info WHERE is_valid = 1 ORDER BY start_date DESC LIMIT 1"));
+            string lastValidPoll = DatabaseExtender.Cast<string>(conn.ExecuteScalar("SELECT data FROM squid_logs_stages_info WHERE is_valid = 1 ORDER BY start_date DESC LIMIT 1"));
             int newStages, newWeapons,
                 newShoes, newClothes, newHead;
             StagesInfoRecord[] records = GetStagesInfo(lastValidPoll);
@@ -272,7 +272,7 @@ namespace SquidTracker.Crawler
             }
         }
 
-        public static StagesInfoRecord[] GetStagesInfo(String data)
+        public static StagesInfoRecord[] GetStagesInfo(string data)
         {
             try
             {

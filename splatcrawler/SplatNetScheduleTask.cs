@@ -45,7 +45,7 @@ namespace SquidTracker.Crawler
                 NnidRegions suitableRegion = suitableNnid.Region;
                 RegionInfo suitableRegionInfo = m_region_infos[suitableRegion];
 
-                String response = GetSchedule(suitableNnid, now);
+                string response = GetSchedule(suitableNnid, now);
                 if (response == null)
                 {
                     working.Remove(suitableNnid);
@@ -148,11 +148,11 @@ namespace SquidTracker.Crawler
             }
         }
 
-        private static String GetSchedule(Nnid nnid, DateTime now)
+        private static string GetSchedule(Nnid nnid, DateTime now)
         {
             if (nnid.Cookies == null) nnid.Login();
             int status;
-            String schedule = RunScheduleRequest(nnid.Cookies, out status);
+            string schedule = RunScheduleRequest(nnid.Cookies, out status);
             if (status != 200)
             {
                 nnid.Login();
@@ -172,14 +172,14 @@ namespace SquidTracker.Crawler
             }
         }
 
-        private static String RunScheduleRequest(CookieContainer cc, out int status)
+        private static string RunScheduleRequest(CookieContainer cc, out int status)
         {
-            String url = "https://splatoon.nintendo.net/schedule/index.json";
+            string url = "https://splatoon.nintendo.net/schedule/index.json";
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
             request.CookieContainer = cc;
             
-            String result;
+            string result;
 
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponseSafe())
             {
@@ -357,15 +357,15 @@ namespace SquidTracker.Crawler
 
     internal class Nnid
     {
-        public String Username;
-        public String Password;
+        public string Username;
+        public string Password;
         public NnidRegions Region;
         public CookieContainer Cookies = null;
         public DateTime? LastLoginSuccess = null;
         public DateTime? LastLoginFailure = null;
         public int Ordinal = 0;
 
-        public Nnid(String username, String password, NnidRegions region)
+        public Nnid(string username, string password, NnidRegions region)
         {
             Username = username;
             Password = password;
@@ -377,7 +377,7 @@ namespace SquidTracker.Crawler
         {
             // https://www.reddit.com/r/splatoon/comments/3xcph1/what_happened_to_splatoonink/cy3ku0y
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://id.nintendo.net/oauth/authorize");
-            String form = String.Format("client_id=12af3d0a3a1f441eb900411bb50a835a&" + 
+            string form = String.Format("client_id=12af3d0a3a1f441eb900411bb50a835a&" + 
                 "response_type=code&" +
                 "redirect_uri=https://splatoon.nintendo.net/users/auth/nintendo/callback&" +
                 "username={0}&" +
@@ -404,7 +404,7 @@ namespace SquidTracker.Crawler
             }
         }
 
-        private String PostEncode(String str)
+        private string PostEncode(string str)
         {
             return Uri.EscapeDataString(str);
         }

@@ -33,7 +33,7 @@ namespace SquidTracker.Crawler
             DateTime now = DateTime.UtcNow;
             NextPollTime = CalculateNextPollTime(now, ERROR_RETRY_INTERVAL);
 
-            String fes_info = null, fes_result = null, recent_results = null, contribution_ranking = null;
+            string fes_info = null, fes_result = null, recent_results = null, contribution_ranking = null;
             using (WebClient wc = new WebClient())
             {
                 wc.Encoding = Encoding.UTF8;
@@ -176,7 +176,7 @@ namespace SquidTracker.Crawler
                 && record.datetime_fes_begin != null && record.datetime_fes_end != null;
         }
 
-        private void ProcessContributionRanking(MySqlConnection conn, String data)
+        private void ProcessContributionRanking(MySqlConnection conn, string data)
         {
             RankingRecord[] records = null;
             try
@@ -218,7 +218,7 @@ namespace SquidTracker.Crawler
             if (newHead > 1) Console.WriteLine("Inserted {0} new hats.", newHead);
         }
 
-        private void ProcessRecentResults(MySqlConnection conn, String data)
+        private void ProcessRecentResults(MySqlConnection conn, string data)
         {
             FesRecentResult[] records = null;
             try
@@ -232,7 +232,7 @@ namespace SquidTracker.Crawler
             if (!isValid) return;
         }
 
-        public static RankingRecord[] GetRankingRecords(String data)
+        public static RankingRecord[] GetRankingRecords(string data)
         {
             try
             {
@@ -244,7 +244,7 @@ namespace SquidTracker.Crawler
             }
         }
 
-        public static FesRecentResult[] GetRecentResults(String data)
+        public static FesRecentResult[] GetRecentResults(string data)
         {
             try
             {
