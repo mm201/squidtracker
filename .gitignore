@@ -7,6 +7,7 @@
 [Rr]elease/
 [Bb]in/
 [Pp]ackages/
+.vs/
 *.Publish.xml
 .DS_Store
 ._.DS_Store
