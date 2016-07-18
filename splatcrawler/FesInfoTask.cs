@@ -108,14 +108,18 @@ namespace SquidTracker.Crawler
             using (MySqlConnection conn = Database.CreateConnection())
             {
                 conn.Open();
-                if (fes_info != null)
-                    Database.LogFesInfo(conn, fes_info, recordValid);
-                if (fes_result != null)
-                    Database.LogFesResult(conn, fes_result, false);
-                if (recent_results != null)
-                    ProcessRecentResults(conn, recent_results);
-                if (contribution_ranking != null)
-                    ProcessContributionRanking(conn, contribution_ranking);
+                using (MySqlTransaction tran = conn.BeginTransaction())
+                {
+                    if (fes_info != null)
+                        Database.LogFesInfo(tran, fes_info, recordValid);
+                    if (fes_result != null)
+                        Database.LogFesResult(tran, fes_result, false);
+                    if (recent_results != null)
+                        ProcessRecentResults(tran, recent_results);
+                    if (contribution_ranking != null)
+                        ProcessContributionRanking(tran, contribution_ranking);
+                    tran.Commit();
+                }
                 conn.Close();
             }
 
@@ -176,7 +180,7 @@ namespace SquidTracker.Crawler
                 && record.datetime_fes_begin != null && record.datetime_fes_end != null;
         }
 
-        private void ProcessContributionRanking(MySqlConnection conn, string data)
+        private void ProcessContributionRanking(MySqlTransaction tran, string data)
         {
             RankingRecord[] records = null;
             try
@@ -186,26 +190,26 @@ namespace SquidTracker.Crawler
             catch { }
 
             bool isValid = records != null && records.Length > 0;
-            Database.LogFesContributionRanking(conn, data, isValid);
+            Database.LogFesContributionRanking(tran, data, isValid);
             if (!isValid) return;
 
             int newWeapons = 0, newShoes = 0, newClothes = 0, newHead = 0;
             foreach (RankingRecord rr in records)
             {
                 bool isNew = false;
-                if (rr.weapon_id != null) Database.GetWeaponId(conn, rr.weapon_id, out isNew);
+                if (rr.weapon_id != null) Database.GetWeaponId(tran, rr.weapon_id, out isNew);
                 if (isNew) newWeapons++;
 
                 isNew = false;
-                if (rr.gear_shoes_id != null) Database.GetShoesId(conn, rr.gear_shoes_id, out isNew);
+                if (rr.gear_shoes_id != null) Database.GetShoesId(tran, rr.gear_shoes_id, out isNew);
                 if (isNew) newShoes++;
 
                 isNew = false;
-                if (rr.gear_clothes_id != null) Database.GetShirtId(conn, rr.gear_clothes_id, out isNew);
+                if (rr.gear_clothes_id != null) Database.GetShirtId(tran, rr.gear_clothes_id, out isNew);
                 if (isNew) newClothes++;
 
                 isNew = false;
-                if (rr.gear_head_id != null) Database.GetHatId(conn, rr.gear_head_id, out isNew);
+                if (rr.gear_head_id != null) Database.GetHatId(tran, rr.gear_head_id, out isNew);
                 if (isNew) newHead++;
             }
             if (newWeapons == 1) Console.WriteLine("Inserted 1 new weapon.");
@@ -218,7 +222,7 @@ namespace SquidTracker.Crawler
             if (newHead > 1) Console.WriteLine("Inserted {0} new hats.", newHead);
         }
 
-        private void ProcessRecentResults(MySqlConnection conn, string data)
+        private void ProcessRecentResults(MySqlTransaction tran, string data)
         {
             FesRecentResult[] records = null;
             try
@@ -228,7 +232,7 @@ namespace SquidTracker.Crawler
             catch { }
 
             bool isValid = records != null && records.Length > 0;
-            Database.LogFesRecentResults(conn, data, isValid);
+            Database.LogFesRecentResults(tran, data, isValid);
             if (!isValid) return;
         }
 

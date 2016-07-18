@@ -294,10 +294,21 @@ namespace SquidTracker.Data
         }
         #endregion
 
+        #region Helpers
         public static T Cast<T>(object value)
         {
-            if (value is DBNull) return default(T);
+            if (value is DBNull)
+            {
+                if (default(T) != null) throw new ArgumentException("Can't cast DBNull to non-nullable type.");
+                return default(T);
+            }
             return (T)value;
         }
+
+        public static object ToDBNull(object obj)
+        {
+            return obj ?? DBNull.Value;
+        }
+        #endregion
     }
 }

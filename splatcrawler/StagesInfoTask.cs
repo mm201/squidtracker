@@ -162,71 +162,81 @@ namespace SquidTracker.Crawler
 
                 bool isValid = records != null && records.Length > 0 &&
                     IsRecordValid(records[0]);
-                Database.LogStagesInfo(conn, data, isValid);
-
-                if (!isValid)
+                using (MySqlTransaction tran = conn.BeginTransaction())
                 {
-                    if (records != null && records.Length > 0)
-                        InsertMissingLeaderboard(conn);
-                    return null;
+                    Database.LogStagesInfo(tran, data, isValid);
+                    if (!isValid)
+                    {
+                        if (records != null && records.Length > 0)
+                            InsertMissingLeaderboard(tran);
+                        return null;
+                    }
+
+                    tran.Commit();
                 }
 
                 int newStages = 0, newWeapons = 0,
                     newShoes = 0, newClothes = 0, newHead = 0;
+                using (MySqlTransaction tran = conn.BeginTransaction())
                 {
                     StagesInfoRecord record = records[0];
                     // scrape all the identifiers we can
                     foreach (StageRecord sr in record.stages)
                     {
                         bool isNew = false;
-                        if (sr != null) Database.GetStageId(conn, sr, out isNew);
+                        if (sr != null) Database.GetStageId(tran, sr, out isNew);
                         if (isNew) newStages++;
                     }
 
                     foreach (RankingRecord rr in record.ranking)
                     {
                         bool isNew = false;
-                        if (rr.weapon_id != null) Database.GetWeaponId(conn, rr.weapon_id, out isNew);
+                        if (rr.weapon_id != null) Database.GetWeaponId(tran, rr.weapon_id, out isNew);
                         if (isNew) newWeapons++;
 
                         isNew = false;
-                        if (rr.gear_shoes_id != null) Database.GetShoesId(conn, rr.gear_shoes_id, out isNew);
+                        if (rr.gear_shoes_id != null) Database.GetShoesId(tran, rr.gear_shoes_id, out isNew);
                         if (isNew) newShoes++;
 
                         isNew = false;
-                        if (rr.gear_clothes_id != null) Database.GetShirtId(conn, rr.gear_clothes_id, out isNew);
+                        if (rr.gear_clothes_id != null) Database.GetShirtId(tran, rr.gear_clothes_id, out isNew);
                         if (isNew) newClothes++;
 
                         isNew = false;
-                        if (rr.gear_head_id != null) Database.GetHatId(conn, rr.gear_head_id, out isNew);
+                        if (rr.gear_head_id != null) Database.GetHatId(tran, rr.gear_head_id, out isNew);
                         if (isNew) newHead++;
                     }
+                    tran.Commit();
                 }
 
-                for (int x = 1; x < records.Length; x++)
+                using (MySqlTransaction tran = conn.BeginTransaction())
                 {
-                    int thisNewStages = 0, thisNewWeapons = 0,
-                        thisNewShoes = 0, thisNewClothes = 0, thisNewHead = 0;
-                    StagesInfoRecord record = records[x];
-                    bool success = false;
-
-                    if (IsRecordValid(record))
+                    for (int x = 1; x < records.Length; x++)
                     {
-                        success = Database.InsertLeaderboard(conn, records[x],
-                            out thisNewStages, out thisNewWeapons, out thisNewShoes, out thisNewClothes, out thisNewHead);
-                    }
+                        int thisNewStages = 0, thisNewWeapons = 0,
+                            thisNewShoes = 0, thisNewClothes = 0, thisNewHead = 0;
+                        StagesInfoRecord record = records[x];
+                        bool success = false;
 
-                    newStages += thisNewStages;
-                    newWeapons += thisNewWeapons;
-                    newShoes += thisNewShoes;
-                    newClothes += thisNewClothes;
-                    newHead += thisNewHead;
+                        if (IsRecordValid(record))
+                        {
+                            success = Database.InsertLeaderboard(tran, records[x],
+                                out thisNewStages, out thisNewWeapons, out thisNewShoes, out thisNewClothes, out thisNewHead);
+                        }
 
-                    if (success)
-                    {
-                        if (pollType == PollTypes.Fresh) Console.WriteLine();
-                        Console.WriteLine("Inserted leaderboard for {0} to {1}.", records[x].datetime_term_begin, records[x].datetime_term_end);
+                        newStages += thisNewStages;
+                        newWeapons += thisNewWeapons;
+                        newShoes += thisNewShoes;
+                        newClothes += thisNewClothes;
+                        newHead += thisNewHead;
+
+                        if (success)
+                        {
+                            if (pollType == PollTypes.Fresh) Console.WriteLine();
+                            Console.WriteLine("Inserted leaderboard for {0} to {1}.", records[x].datetime_term_begin, records[x].datetime_term_end);
+                        }
                     }
+                    tran.Commit();
                 }
                 conn.Close();
 
@@ -251,9 +261,9 @@ namespace SquidTracker.Crawler
                     record.stages.Length > 0;
         }
 
-        private static void InsertMissingLeaderboard(MySqlConnection conn)
+        private static void InsertMissingLeaderboard(MySqlTransaction tran)
         {
-            string lastValidPoll = DatabaseExtender.Cast<string>(conn.ExecuteScalar("SELECT data FROM squid_logs_stages_info WHERE is_valid = 1 ORDER BY start_date DESC LIMIT 1"));
+            string lastValidPoll = DatabaseExtender.Cast<string>(tran.ExecuteScalar("SELECT data FROM squid_logs_stages_info WHERE is_valid = 1 ORDER BY start_date DESC LIMIT 1"));
             int newStages, newWeapons,
                 newShoes, newClothes, newHead;
             StagesInfoRecord[] records = GetStagesInfo(lastValidPoll);
@@ -262,7 +272,7 @@ namespace SquidTracker.Crawler
 
             if (IsRecordValid(record))
             {
-                success = Database.InsertLeaderboard(conn, record,
+                success = Database.InsertLeaderboard(tran, record,
                     out newStages, out newWeapons, out newShoes, out newClothes, out newHead);
             }
 
