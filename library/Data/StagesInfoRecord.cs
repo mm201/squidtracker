@@ -15,33 +15,33 @@ namespace SquidTracker.Data
 
     public class StageRecord
     {
-        public String id;
-        public String name;
+        public string id;
+        public string name;
     }
 
     public class RankingRecord
     {
-        public String mii_name;
-        public String weapon_id;
-        public String gear_shoes_id;
-        public String gear_clothes_id;
-        public String gear_head_id;
+        public string mii_name;
+        public string weapon_id;
+        public string gear_shoes_id;
+        public string gear_clothes_id;
+        public string gear_head_id;
     }
 
     public class FesRecentResult
     {
-        public String win_team_name;
-        public String win_team_mvp;
+        public string win_team_name;
+        public string win_team_mvp;
     }
 
     public class FesInfoRecord
     {
         public int fes_state;
         public StageRecord[] fes_stages;
-        public String fes_id;
+        public string fes_id;
         public DateTime? datetime_fes_begin;
         public DateTime? datetime_fes_end;
-        public String team_alpha_name;
-        public String team_bravo_name;
+        public string team_alpha_name;
+        public string team_bravo_name;
     }
 }

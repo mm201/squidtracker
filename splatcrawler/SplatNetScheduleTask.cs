@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -53,6 +54,9 @@ namespace SquidTracker.Crawler
                 }
 
                 schedule = SplatNetSchedule.Parse(response);
+                foreach (SplatNetEntry entry in schedule.Entries)
+                    entry.Region = suitableRegion;
+
                 ProcessSchedule(suitableRegionInfo, schedule, suitableNnid, now);
                 working.RemoveAll(n => n.Region == suitableNnid.Region);
 
@@ -79,7 +83,6 @@ namespace SquidTracker.Crawler
             }
 
             SplatNetScheduleRegular finalSchedule = ReconcileSchedules(m_region_infos);
-            // todo: database the schedule.
 
             using (MySqlConnection conn = Database.CreateConnection())
             {
@@ -87,21 +90,125 @@ namespace SquidTracker.Crawler
 
                 foreach (SplatNetEntryRegular entry in finalSchedule.schedule)
                 {
-                    // todo:
-                    // obtain intersecting schedule from the database.
-                    // If none found, insert this entry.
-                    // If one is found, merge it with this one, ie. use min(startDates), max(endDates)
-
                     DateTime begin = entry.datetime_begin.UtcDateTime;
                     DateTime end = entry.datetime_end.UtcDateTime;
-                    string[] regular = entry.stages.regular.Select(s => s.Identifier()).ToArray();
-                    string[] gachi = entry.stages.gachi.Select(s => s.Identifier()).ToArray();
+
+                    SplatNetStage[] regular = entry.stages.regular;
+                    SplatNetStage[] gachi = entry.stages.gachi;
+
+                    uint? ranked_mode_id = DatabaseExtender.Cast<uint?>(
+                        conn.ExecuteScalar("SELECT id FROM squid_modes WHERE @name IN (name_ja, name_en)",
+                        new MySqlParameter("@name", entry.gachi_rule)
+                        ));
+
+                    using (MySqlTransaction tran = conn.BeginTransaction())
+                    {
+                        DataTable tblExist = tran.ExecuteDataTable(
+                            "SELECT id, datetime_begin, datetime_end, ranked_mode_id FROM squid_schedule " +
+                            "WHERE (datetime_begin >= @datetime_begin OR datetime_end > @datetime_begin) " +
+                            "AND (datetime_begin < @datetime_end OR datetime_end <= @datetime_end)",
+                            new MySqlParameter("@datetime_begin", begin),
+                            new MySqlParameter("@datetime_end", end));
+
+                        int? idMerge = null;
+                        List<int> idsDelete = new List<int>();
+
+                        foreach (DataRow row in tblExist.Rows)
+                        {
+                            begin = Common.Min(DatabaseExtender.Cast<DateTime>(row["datetime_begin"]), begin);
+                            end = Common.Max(DatabaseExtender.Cast<DateTime>(row["datetime_end"]), end);
+
+                            if (idMerge == null)
+                                idMerge = DatabaseExtender.Cast<int>(row["id"]);
+                            else
+                                idsDelete.Add(DatabaseExtender.Cast<int>(row["id"]));
+                        }
+
+                        if (idsDelete.Count > 0)
+                        {
+                            string strIdsDelete = String.Join(",", idsDelete.Select(i => i.ToString()).ToArray());
+                            Console.WriteLine("Merging schedules {0} into {1}.", strIdsDelete, idMerge);
+                            tran.ExecuteNonQuery("DELETE FROM squid_schedule_stages WHERE schedule_id IN (" + strIdsDelete + ");" +
+                                "DELETE FROM squid_schedule WHERE id IN (" + strIdsDelete + ")");
+                        }
+                        if (idMerge != null)
+                        {
+                            Console.WriteLine("Using existing schedule {0}.", idMerge);
+                            tran.ExecuteNonQuery("UPDATE squid_schedule " +
+                                "SET datetime_begin = @datetime_begin, " +
+                                "datetime_end = @datetime_end " +
+                                "WHERE id = @id",
+                                new MySqlParameter("@datetime_begin", begin),
+                                new MySqlParameter("@datetime_end", end),
+                                new MySqlParameter("@id", idMerge));
+                        }
+                        else
+                        {
+                            Console.WriteLine("Inserting new schedule from {0} to {1}.",
+                                begin, end);
+
+                            int scheduleId = Convert.ToInt32(DatabaseExtender.Cast<object>(
+                                tran.ExecuteScalar("INSERT INTO squid_schedule " +
+                                "(datetime_begin, datetime_end, ranked_mode_id) VALUES " +
+                                "(@datetime_begin, @datetime_end, @ranked_mode_id); SELECT LAST_INSERT_ID()",
+                                new MySqlParameter("@datetime_begin", begin),
+                                new MySqlParameter("@datetime_end", end),
+                                new MySqlParameter("@ranked_mode_id", ranked_mode_id))));
+
+                            int position = 0;
+                            foreach (SplatNetStage sns in regular)
+                            {
+                                bool isNew;
+                                uint stageId = Database.GetStageId(tran, sns, out isNew);
+
+                                if (isNew)
+                                    Console.WriteLine("Inserted new stage: {0}", sns.Identifier);
+
+                                tran.ExecuteNonQuery("INSERT INTO squid_schedule_stages " +
+                                    "(schedule_id, position, is_ranked, stage_id) VALUES " +
+                                    "(@schedule_id, @position, 0, @stage_id)",
+                                    new MySqlParameter("@schedule_id", scheduleId),
+                                    new MySqlParameter("@position", position),
+                                    new MySqlParameter("@stage_id", stageId));
+
+                                position++;
+                            }
+
+                            position = 0;
+                            foreach (SplatNetStage sns in gachi)
+                            {
+                                bool isNew;
+                                uint stageId = Database.GetStageId(tran, sns, out isNew);
+
+                                if (isNew)
+                                    Console.WriteLine("Inserted new stage: {0}", sns.Identifier);
+
+                                tran.ExecuteNonQuery("INSERT INTO squid_schedule_stages " +
+                                    "(schedule_id, position, is_ranked, stage_id) VALUES " +
+                                    "(@schedule_id, @position, 1, @stage_id)",
+                                    new MySqlParameter("@schedule_id", scheduleId),
+                                    new MySqlParameter("@position", position),
+                                    new MySqlParameter("@stage_id", stageId));
+
+                                position++;
+                            }
+                        }
+
+                        tran.Commit();
+                    }
                 }
+
+                // todo: database splatfest information.
+
+
 
                 conn.Close();
             }
 
-            // todo: database splatfest information.
+            // todo: schedule updates more sanely.
+            // 1. we need to poll rapidly when new info is imminent
+            // 2. when rapidly polling just before a splatfest, only poll that region.
+            NextPollTime = CalculateNextPollTime(now, AMBIENT_POLL_INTERVAL);
         }
 
         private static Nnid FindSuitableLogin(List<Nnid> working)
@@ -158,7 +265,6 @@ namespace SquidTracker.Crawler
                 nnid.Login();
                 schedule = RunScheduleRequest(nnid.Cookies, out status);
             }
-            Console.WriteLine(schedule);
 
             if (status == 200)
             {
@@ -299,7 +405,7 @@ namespace SquidTracker.Crawler
 
         private static string CommaStages(SplatNetStage[] stages)
         {
-            return String.Join(",", stages.Select(s => (s.Identifier() ?? "??").Substring(0, 2)).ToArray());
+            return String.Join(",", stages.Select(s => (s.Identifier ?? "??").Substring(0, 2)).ToArray());
         }
 
         private static bool CompareScheduleTimes(SplatNetEntry first, SplatNetEntry second)
@@ -329,7 +435,7 @@ namespace SquidTracker.Crawler
 
         private static bool CompareSplatNetStages(SplatNetStage first, SplatNetStage second)
         {
-            return first.Identifier() == second.Identifier();
+            return first.Identifier == second.Identifier;
         }
 
         private static void FlagRegionInvalid(RegionInfo region_info)
@@ -408,13 +514,6 @@ namespace SquidTracker.Crawler
         {
             return Uri.EscapeDataString(str);
         }
-    }
-
-    internal enum NnidRegions
-    {
-        Japan,
-        America,
-        Europe
     }
 
     internal class RegionInfo

@@ -232,7 +232,7 @@ namespace SquidTracker.Data
             return result;
         }
 
-        private static uint GetAnyId(MySqlTransaction tran, string table, string identifier, String name, out bool isNew)
+        private static uint GetAnyId(MySqlTransaction tran, string table, string identifier, string name, out bool isNew)
         {
             isNew = false;
 
@@ -265,6 +265,36 @@ namespace SquidTracker.Data
         public static uint GetStageId(MySqlTransaction tran, StageRecord sr, out bool isNew)
         {
             return GetAnyId(tran, "squid_stages", sr.id, sr.name, out isNew);
+        }
+
+        public static uint GetStageId(MySqlTransaction tran, SplatNetStage sns, out bool isNew)
+        {
+            isNew = false;
+
+            string identifier = sns.Identifier;
+            NnidRegions region = sns.Region;
+
+            object o1 = tran.ExecuteScalar("SELECT id FROM squid_stages " +
+                "WHERE identifier_splatnet_regular = @identifier_splatnet_regular",
+                new MySqlParameter("@identifier_splatnet_regular", identifier));
+            object o = DatabaseExtender.Cast<object>(o1);
+            if (o != null) return Convert.ToUInt32(o);
+
+            isNew = true;
+            if (sns.name == null)
+            {
+                return Convert.ToUInt32(DatabaseExtender.Cast<object>(tran.ExecuteScalar("INSERT INTO " +
+                    "squid_stages (identifier_splatnet_regular) VALUES (@identifier_splatnet_regular); SELECT LAST_INSERT_ID()",
+                    new MySqlParameter("@identifier_splatnet_regular", identifier))));
+            }
+            else
+            {
+                return Convert.ToUInt32(DatabaseExtender.Cast<object>(tran.ExecuteScalar("INSERT INTO " +
+                    "squid_stages (identifier_splatnet_regular, name_ja) VALUES (@identifier_splatnet_regular, @name_ja); SELECT LAST_INSERT_ID()",
+                    new MySqlParameter("@identifier_splatnet_regular", identifier),
+                    new MySqlParameter("@name_ja", sns.name)
+                    )));
+            }
         }
 
         public static uint GetWeaponId(MySqlTransaction tran, string identifier, out bool isNew)

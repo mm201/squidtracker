@@ -73,19 +73,69 @@ namespace SquidTracker.Data
         {
             return datetime_end - datetime_begin;
         }
+
+        [JsonIgnore]
+        public virtual NnidRegions Region
+        {
+            get; set;
+        }
     }
 
     public class SplatNetEntryRegular : SplatNetEntry
     {
         public SplatNetStages stages;
-        public String gachi_rule;
+        public string gachi_rule;
+
+        private NnidRegions m_region;
+        public override NnidRegions Region
+        {
+            get
+            {
+                return m_region;
+            }
+
+            set
+            {
+                if (m_region == value) return;
+                m_region = value;
+
+                foreach (SplatNetStage s in stages.regular)
+                {
+                    s.Region = value;
+                }
+                foreach (SplatNetStage s in stages.gachi)
+                {
+                    s.Region = value;
+                }
+            }
+        }
     }
 
     public class SplatNetEntryFestival : SplatNetEntry
     {
-        public String team_alpha_name;
-        public String team_bravo_name;
+        public string team_alpha_name;
+        public string team_bravo_name;
         public SplatNetStage[] stages;
+
+        private NnidRegions m_region;
+        public override NnidRegions Region
+        {
+            get
+            {
+                return m_region;
+            }
+
+            set
+            {
+                if (m_region == value) return;
+                m_region = value;
+
+                foreach (SplatNetStage s in stages)
+                {
+                    s.Region = value;
+                }
+            }
+        }
     }
 
     public class SplatNetStages
@@ -96,16 +146,31 @@ namespace SquidTracker.Data
 
     public class SplatNetStage
     {
-        public String asset_path;
-        public String name;
+        public string asset_path;
+        public string name;
 
-        public string Identifier()
+        [JsonIgnore]
+        public string Identifier
         {
-            // example string for regex testing:
-            // /assets/en/svg/stage/@2x/c1775c19c1d84b0ca8b49f2d97815406c0dfd902cf9eec5d91bc7379395a852c-408f9ed32cc2a468ddb7469e740c511e0c2867dfadc2fb84d1b21f52b2758f03.png
+            get
+            {
+                // example string for regex testing:
+                // /assets/en/svg/stage/@2x/c1775c19c1d84b0ca8b49f2d97815406c0dfd902cf9eec5d91bc7379395a852c-408f9ed32cc2a468ddb7469e740c511e0c2867dfadc2fb84d1b21f52b2758f03.png
 
-            Match match = Regex.Match(asset_path, @"(?<=(/assets/en/svg/stage/@2x/))[0-9a-f]{64}(?=(-[0-9a-f]{64}\.png))");
-            return match.Success ? match.Value : null;
+                Match match = Regex.Match(asset_path, @"(?<=(/assets/[a-z]{2}/svg/stage/@2x/))[0-9a-f]{64}(?=(-[0-9a-f]{64}\.png))");
+                if (!match.Success) throw new FormatException("asset_path wrongly formatted.");
+                return match.Success ? match.Value : null;
+            }
         }
+
+        [JsonIgnore]
+        public NnidRegions Region { get; set; }
+    }
+
+    public enum NnidRegions
+    {
+        Japan,
+        America,
+        Europe
     }
 }
