@@ -17,7 +17,6 @@ namespace SquidTracker.Crawler
         }
 
         // these two variables are only used for tidy console display.
-        private PollTypes pollType;// = PollTypes.Initial;
         private bool freshShortUpdate = false;
 
         public FesInfoRecord LastRecord { get; private set; }
@@ -123,7 +122,6 @@ namespace SquidTracker.Crawler
                 conn.Close();
             }
 
-            pollType = PollTypes.Ambient;
             NextPollTime = CalculateNextPollTime(now, AMBIENT_POLL_INTERVAL);
 
             if (recordValid)
@@ -140,7 +138,6 @@ namespace SquidTracker.Crawler
                         Console.Write(".");
                     else
                         Console.Write("Waiting for Splatfest data.");
-                    pollType = PollTypes.Fresh;
 
                     freshShortUpdate = true;
                 }
@@ -149,7 +146,6 @@ namespace SquidTracker.Crawler
                     // end of rotation comes sooner than ambient polling
                     NextPollTime = startTimePreEmpt;
                     Console.WriteLine("Polling for Splatfest data at {0:G}.", NextPollTime.ToLocalTime());
-                    pollType = PollTypes.Fresh;
                     freshShortUpdate = false;
                 }
                 else if (fesState == 1)
