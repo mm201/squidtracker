@@ -13,6 +13,7 @@
 <script type="text/javascript">
 
     var squidNextStage = { "filename": "next", "name_ja": null, "name_en": "A new map!" };
+    var squidNextMode = { "filename": "next", "name_ja": null, "name_en": "Unknown" };
 
     var squidViewModel =
     {
@@ -179,9 +180,9 @@
         return "images/stages/" + squidGetStage(id).filename + ".png";
     }
 
-    function squidGetName(id)
+    function squidGetName(record)
     {
-        return squidGetStage(id).name_en;
+        return record.name_en;
     }
 
     function squidGetStage(id)
@@ -189,6 +190,14 @@
         var result = squidStages[id];
         if (result === undefined || result === null || result.filename == null)
             return squidNextStage;
+        return result;
+    }
+
+    function squidGetMode(id)
+    {
+        var result = squidModes[id];
+        if (result === undefined || result === null)
+            return squidNextMode;
         return result;
     }
 
@@ -237,15 +246,16 @@
             </div>
         </div>
         <div class="squidLeftColumn">
-            <div class="squidMapsHeading squidHeadingTurf">Current Turf War maps</div>
+            <div class="squidMapsHeading squidHeadingTurf">Current Regular maps</div>
+            <div class="squidMapsMode squidHeadingTurf">Mode: <span data-bind="text: squidGetName(squidGetMode(1))"></span></div>
 
             <div data-bind="foreach: (scheduleCurrent()[0] || {}).RegularStages">
                 <div class="squidMapItem">
                 <div class="squidMapPicture">
                     <img src="images/stages/blank.png" alt=""
-                        data-bind="attr: { src: squidImageSrc($data), alt: squidGetName($data) }" />
+                        data-bind="attr: { src: squidImageSrc($data), alt: squidGetName(squidGetStage($data)) }" />
                 </div>
-                <div class="squidMapTitle" data-bind="text: squidGetName($data)">
+                <div class="squidMapTitle" data-bind="text: squidGetName(squidGetStage($data))">
 
                 </div>
                 </div>
@@ -267,14 +277,15 @@
         </div>
         <div class="squidRightColumn">
             <div class="squidMapsHeading squidHeadingRanked">Current Ranked maps</div>
+            <div class="squidMapsMode squidHeadingRanked">Mode: <span data-bind="text: squidGetName(squidGetMode((scheduleCurrent()[0] || {}).RankedModeID))"></span></div>
 
             <div data-bind="foreach: (scheduleCurrent()[0] || {}).RankedStages">
                 <div class="squidMapItem">
                 <div class="squidMapPicture">
                     <img src="images/stages/blank.png" alt=""
-                        data-bind="attr: { src: squidImageSrc($data), alt: squidGetName($data) }" />
+                        data-bind="attr: { src: squidImageSrc($data), alt: squidGetName(squidGetStage($data)) }" />
                 </div>
-                <div class="squidMapTitle" data-bind="text: squidGetName($data)">
+                <div class="squidMapTitle" data-bind="text: squidGetName(squidGetStage($data))">
 
                 </div>
                 </div>
