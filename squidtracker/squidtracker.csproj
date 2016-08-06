@@ -19,6 +19,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,6 +42,10 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="MySql.Data">
       <HintPath>..\packages\MySql.Data.6.9.7\lib\net40\MySql.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
@@ -505,6 +510,7 @@
     <Content Include="scripts\retina.js" />
     <Content Include="css\ikamodoki.woff" />
     <Content Include="css\paintball_web.woff" />
+    <Content Include="schedule.ashx" />
     <None Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -523,6 +529,9 @@
       <DependentUpon>Main.master</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="schedule.ashx.cs">
+      <DependentUpon>schedule.ashx</DependentUpon>
+    </Compile>
     <Compile Include="src\Common.cs" />
     <Compile Include="src\DependencyNode.cs" />
     <Compile Include="src\OnceTemplate.cs" />

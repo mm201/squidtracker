@@ -35,9 +35,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\MySql.Data.6.9.7\lib\net20\MySql.Data.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net35\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net35\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -52,6 +52,7 @@
     <Compile Include="Data\Database.cs" />
     <Compile Include="Data\DatabaseExtender.cs" />
     <Compile Include="Data\MySqlDatabaseExtender.cs" />
+    <Compile Include="Data\ScheduleRecord.cs" />
     <Compile Include="Data\SplatNetSchedule.cs" />
     <Compile Include="Data\StagesInfoRecord.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

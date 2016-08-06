@@ -16,7 +16,7 @@ namespace SquidTracker.Data
             return new MySqlConnection(ConfigurationManager.ConnectionStrings["squidTrackerConnectionString"].ConnectionString);
         }
 
-        private static void WithConnection(Action<MySqlConnection> action)
+        public static void WithConnection(Action<MySqlConnection> action)
         {
             using (MySqlConnection conn = CreateConnection())
             {
@@ -26,7 +26,7 @@ namespace SquidTracker.Data
             }
         }
 
-        private static TRet WithConnection<TRet>(Func<MySqlConnection, TRet> func)
+        public static TRet WithConnection<TRet>(Func<MySqlConnection, TRet> func)
         {
             TRet result;
             using (MySqlConnection conn = CreateConnection())
@@ -38,41 +38,41 @@ namespace SquidTracker.Data
             return result;
         }
 
-        private static void WithTransaction(Action<MySqlTransaction> action)
+        public static void WithTransaction(Action<MySqlTransaction> action, MySqlConnection conn)
         {
-            using (MySqlConnection conn = CreateConnection())
+            using (MySqlTransaction tran = conn.BeginTransaction())
             {
-                conn.Open();
-                using (MySqlTransaction tran = conn.BeginTransaction())
-                {
-                    action(tran);
-                    tran.Commit();
-                }
-                conn.Close();
+                action(tran);
+                tran.Commit();
             }
         }
 
-        private static TRet WithTransaction<TRet>(Func<MySqlTransaction, TRet> func)
+        public static TRet WithTransaction<TRet>(Func<MySqlTransaction, TRet> func, MySqlConnection conn)
         {
             TRet result;
-            using (MySqlConnection conn = CreateConnection())
+            using (MySqlTransaction tran = conn.BeginTransaction())
             {
-                conn.Open();
-                using (MySqlTransaction tran = conn.BeginTransaction())
-                {
-                    result = func(tran);
-                    tran.Commit();
-                }
-                conn.Close();
+                result = func(tran);
+                tran.Commit();
             }
             return result;
         }
 
-        private static void LogNetRequest(MySqlTransaction tran, String table, String data, bool isValid)
+        public static void WithTransaction(Action<MySqlTransaction> action)
+        {
+            WithConnection(conn => WithTransaction(action, conn));
+        }
+
+        public static TRet WithTransaction<TRet>(Func<MySqlTransaction, TRet> func)
+        {
+            return WithConnection(conn => WithTransaction(func, conn));
+        }
+
+        private static void LogNetRequest(MySqlTransaction tran, string table, string data, bool isValid)
         {
             DataTable tbl = tran.ExecuteDataTable("SELECT id, data FROM " + table + " ORDER BY end_date DESC LIMIT 1");
-            String prevData = tbl.Rows.Count == 0 ? null : 
-                DatabaseExtender.Cast<String>(tbl.Rows[0]["data"]);
+            string prevData = tbl.Rows.Count == 0 ? null : 
+                DatabaseExtender.Cast<string>(tbl.Rows[0]["data"]);
             int ? prevId = tbl.Rows.Count == 0 ? null :
                 DatabaseExtender.Cast<int ?>(tbl.Rows[0]["id"]);
 
@@ -315,6 +315,54 @@ namespace SquidTracker.Data
         public static uint GetHatId(MySqlTransaction tran, string identifier, out bool isNew)
         {
             return GetAnyId(tran, "squid_gear_head", identifier, null, out isNew);
+        }
+
+        public static List<ScheduleRecord> GetSchedule(MySqlTransaction tran)
+        {
+            string sqlStages = 
+                "SELECT stage_id FROM squid_schedule_stages " +
+                "WHERE schedule_id = @schedule_id AND is_ranked = @is_ranked " +
+                "ORDER BY position";
+            string sqlStagesRegular = sqlStages.Replace("@is_ranked", "0");
+            string sqlStagesRanked = sqlStages.Replace("@is_ranked", "1");
+
+            DataTable tblSchedule = tran.ExecuteDataTable(
+                "SELECT id, datetime_begin, datetime_end, ranked_mode_id " +
+                "FROM squid_schedule " +
+                "WHERE datetime_end > UTC_TIMESTAMP() " +
+                "ORDER BY datetime_end " +
+                "LIMIT 4");
+
+            List<ScheduleRecord> result = new List<ScheduleRecord>(tblSchedule.Rows.Count);
+
+            foreach (DataRow row in tblSchedule.Rows)
+            {
+                uint schedule_id = Convert.ToUInt32(DatabaseExtender.Cast<object>(row["id"]));
+                ScheduleRecord record = new ScheduleRecord(
+                    DatabaseExtender.Cast<DateTime>(row["datetime_begin"]),
+                    DatabaseExtender.Cast<DateTime>(row["datetime_end"]),
+                    Convert.ToUInt32(DatabaseExtender.Cast<object>(row["ranked_mode_id"])),
+                    null, null);
+
+                DataTable tblStagesRegular = tran.ExecuteDataTable(
+                    sqlStagesRegular,
+                    new MySqlParameter("@schedule_id", schedule_id));
+                DataTable tblStagesRanked = tran.ExecuteDataTable(
+                    sqlStagesRanked,
+                    new MySqlParameter("@schedule_id", schedule_id));
+
+                record.RegularStages = TableToStageIds(tblStagesRegular);
+                record.RankedStages = TableToStageIds(tblStagesRanked);
+
+                result.Add(record);
+            }
+
+            return result;
+        }
+
+        private static uint[] TableToStageIds(DataTable tbl)
+        {
+            return tbl.Rows.Cast<DataRow>().Select(row => Convert.ToUInt32(DatabaseExtender.Cast<object>(row["stage_id"]))).ToArray();
         }
     }
 }

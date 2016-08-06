@@ -7,12 +7,15 @@ using Newtonsoft.Json;
 
 namespace SquidTracker.Data
 {
+    /// <summary>
+    /// The map rotation schedule in the Splatnet response format
+    /// </summary>
     public abstract class SplatNetSchedule
     {
         public bool festival;
         public abstract IList<SplatNetEntry> Entries { get; }
 
-        public static SplatNetSchedule Parse(String json)
+        public static SplatNetSchedule Parse(string json)
         {
             SplatNetScheduleUnknown test = JsonConvert.DeserializeObject<SplatNetScheduleUnknown>(json);
 

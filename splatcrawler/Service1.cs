@@ -53,7 +53,7 @@ namespace splatcrawler
             {
                 theStagesInfoTask,
                 theFesInfoTask,
-                //new SplatNetScheduleTask()
+                new SplatNetScheduleTask()
             };
 
             while (m_should_work)
