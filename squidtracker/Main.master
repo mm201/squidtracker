@@ -40,7 +40,7 @@
     </asp:PlaceHolder>
 
     <div class="squidDisclaimer">
-        Data is collected from the <a href="http://www.nintendo.co.jp/wiiu/agmj/index.html" target="_blank">Splatoon official website</a>.
+        Data is collected from <a href="https://splatoon.nintendo.net/" target="_blank">SplatNet</a>.
         Splatoon is © 2015 Nintendo. This site is not affiliated with Nintendo in any way.
     </div>
 
