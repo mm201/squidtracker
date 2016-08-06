@@ -19,6 +19,8 @@ namespace SquidTracker.Crawler
             m_region_infos = REGIONS.ToDictionary(r => r, r => new RegionInfo());
         }
 
+        private bool freshShortUpdate;
+
         private List<Nnid> m_nnids = NnidLogins.GetLogins();
 
         private Dictionary<NnidRegions, RegionInfo> m_region_infos;
@@ -110,7 +112,7 @@ namespace SquidTracker.Crawler
                             new MySqlParameter("@datetime_begin", begin),
                             new MySqlParameter("@datetime_end", end));
 
-                        int? idMerge = null;
+                        DataRow rowMerge = null;
                         List<int> idsDelete = new List<int>();
 
                         foreach (DataRow row in tblExist.Rows)
@@ -118,29 +120,39 @@ namespace SquidTracker.Crawler
                             begin = Common.Min(DatabaseExtender.Cast<DateTime>(row["datetime_begin"]), begin);
                             end = Common.Max(DatabaseExtender.Cast<DateTime>(row["datetime_end"]), end);
 
-                            if (idMerge == null)
-                                idMerge = DatabaseExtender.Cast<int>(row["id"]);
+                            if (rowMerge == null)
+                                rowMerge = row;
                             else
                                 idsDelete.Add(DatabaseExtender.Cast<int>(row["id"]));
                         }
 
                         if (idsDelete.Count > 0)
                         {
+                            int idMerge = DatabaseExtender.Cast<int>(rowMerge["id"]);
+
                             string strIdsDelete = String.Join(",", idsDelete.Select(i => i.ToString()).ToArray());
                             Console.WriteLine("Merging schedules {0} into {1}.", strIdsDelete, idMerge);
                             tran.ExecuteNonQuery("DELETE FROM squid_schedule_stages WHERE schedule_id IN (" + strIdsDelete + ");" +
                                 "DELETE FROM squid_schedule WHERE id IN (" + strIdsDelete + ")");
                         }
-                        if (idMerge != null)
+                        if (tblExist.Rows.Count > 0)
                         {
-                            Console.WriteLine("Using existing schedule {0}.", idMerge);
-                            tran.ExecuteNonQuery("UPDATE squid_schedule " +
-                                "SET datetime_begin = @datetime_begin, " +
-                                "datetime_end = @datetime_end " +
-                                "WHERE id = @id",
-                                new MySqlParameter("@datetime_begin", begin),
-                                new MySqlParameter("@datetime_end", end),
-                                new MySqlParameter("@id", idMerge));
+                            DateTime mergeDatetimeBegin = DatabaseExtender.Cast<DateTime>(rowMerge["datetime_begin"]);
+                            DateTime mergeDatetimeEnd = DatabaseExtender.Cast<DateTime>(rowMerge["datetime_end"]);
+
+                            if (mergeDatetimeBegin != begin || mergeDatetimeEnd != end)
+                            {
+                                int idMerge = DatabaseExtender.Cast<int>(rowMerge["id"]);
+
+                                Console.WriteLine("Extending existing schedule {0}.", idMerge);
+                                tran.ExecuteNonQuery("UPDATE squid_schedule " +
+                                    "SET datetime_begin = @datetime_begin, " +
+                                    "datetime_end = @datetime_end " +
+                                    "WHERE id = @id",
+                                    new MySqlParameter("@datetime_begin", begin),
+                                    new MySqlParameter("@datetime_end", end),
+                                    new MySqlParameter("@id", idMerge));
+                            }
                         }
                         else
                         {
@@ -209,6 +221,41 @@ namespace SquidTracker.Crawler
             // 1. we need to poll rapidly when new info is imminent
             // 2. when rapidly polling just before a splatfest, only poll that region.
             NextPollTime = CalculateNextPollTime(now, AMBIENT_POLL_INTERVAL);
+            
+            if (finalSchedule.Entries.Count > 0)
+            {
+                SplatNetEntry entry = finalSchedule.Entries[0];
+
+                DateTime endTimeUtc = entry.datetime_end.UtcDateTime;
+                DateTime endTimePreEmpt = endTimeUtc.AddSeconds(-PRE_EMPT);
+                DateTime startTimeUtc = entry.datetime_begin.UtcDateTime;
+                if (endTimePreEmpt < now)
+                {
+                    // received data is stale so we are polling
+                    // xxx: we need a rapid give-up time so that if the
+                    // response format changes or something, we don't end up
+                    // hammering the server indefinitely.
+                    NextPollTime = now.AddSeconds(FAST_POLL_INTERVAL);
+                    if (freshShortUpdate)
+                        Console.Write(".");
+                    else
+                        Console.Write("Waiting for new maps (Splatnet).");
+
+                    freshShortUpdate = true;
+                }
+                else if (endTimePreEmpt < NextPollTime)
+                {
+                    // end of rotation comes sooner than ambient polling
+                    NextPollTime = endTimePreEmpt;
+                    Console.WriteLine("Polling for fresh maps (Splatnet) at {0:G}.", NextPollTime.ToLocalTime());
+                    freshShortUpdate = false;
+                }
+                else
+                {
+                    Console.WriteLine("Next Splatnet poll at {0:G}.", NextPollTime.ToLocalTime());
+                    freshShortUpdate = false;
+                }
+            }
         }
 
         private static Nnid FindSuitableLogin(List<Nnid> working)
