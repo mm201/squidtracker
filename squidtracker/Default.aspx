@@ -17,9 +17,8 @@
     var squidViewModel =
     {
         changeTimes: ko.observable([]),
-        mapsTurf: ko.observable([]),
-        mapsRanked: ko.observable([]),
-        modeRanked: ko.observable(""),
+        schedule: ko.observable([]),
+        scheduleCurrent: ko.observable([]),
         timeEnd: ko.observable(),
         timeEndFormatted: ko.observable(),
         timeRemainingFormatted: ko.observable(),
@@ -37,15 +36,9 @@
         squidRefresh();
     });
 
-    var squidTimeout;
-    function squidRefreshTimeout()
-    {
-        squidTimeout = setTimeout(squidRefresh, 1000);
-    }
-
     function squidRefresh()
     {
-        var mapsTurf = squidViewModel.mapsTurf();
+        var schedule = squidViewModel.schedule();
         var timeEnd = squidViewModel.timeEnd();
 
         var timeNow = moment().utc();
@@ -63,14 +56,13 @@
             isStale = true;
         }
 
-        squidFormatTimeRemaining(timeRemaining, isStale);
         var timeNextQuery = squidViewModel.timeNextQuery();
         if (timeNextQuery === undefined) timeNextQuery = timeNow;
         if (squidViewModel.timeLastQuery() === undefined) squidViewModel.timeLastQuery(timeNow);
 
-        if (timeNextQuery.diff(timeNow) <= 0 && (mapsTurf.length == 0 || isStale))
+        if (timeNextQuery.diff(timeNow) <= 0 && (schedule.length == 0 || isStale))
         {
-            $.ajax("stages_info.ashx",
+            $.ajax("schedule.ashx",
             {
                 method: "GET",
                 dataType: "json",
@@ -78,33 +70,25 @@
                 {
                     var timeEnd;
 
-                    if (data[0].datetime_term_end === undefined ||
-                        data[0].datetime_term_end == "")
+                    if (data.length == 0)
                     {
                         timeEnd = moment.utc().add(-4, 'h');
                         squidViewModel.isSplatfest(true);
                     }
                     else
                     {
-                        timeEnd = moment.tz(data[0].datetime_term_end, "Asia/Tokyo").utc();
+                        timeEnd = moment.utc(data[0].End);
                         squidViewModel.isSplatfest(false);
                     }
 
-                    var timeEndLocal = timeEnd.clone().local();
                     var timeNow = moment().utc();
                     var timeRemaining = moment.duration(timeEnd.diff(timeNow));
-                    var isStale = timeRemaining.asSeconds() < 0;
+                    var timeEndLocal = timeEnd.clone().local();
 
-                    squidViewModel.mapsTurf(data[0].stages);
-                    if (data.length > 1)
-                        squidViewModel.mapsRanked(data[1].stages);
-                    else
-                        squidViewModel.mapsRanked(undefined);
+                    squidViewModel.schedule(data);
 
                     squidViewModel.timeEnd(timeEnd);
                     squidViewModel.timeEndFormatted(timeEndLocal.format("LT"));
-
-                    squidFormatTimeRemaining(timeRemaining, isStale);
 
                     var timeExpectedUpdate = timeEnd.clone().add(60, 's');
                     squidViewModel.timeLastQuery(timeNow);
@@ -117,14 +101,40 @@
                 },
                 complete: function()
                 {
-                    squidRefreshTimeout();
+                    squidRefreshContinuation();
                 }
             });
         }
         else
         {
-            squidRefreshTimeout();
+            squidRefreshContinuation();
         }
+    }
+
+    var squidTimeout;
+    function squidRefreshContinuation()
+    {
+        // prune expired schedules from display.
+        var scheduleCurrent = squidViewModel.schedule();
+        var timeNow = moment().utc();
+        var timeEnd = moment.utc(scheduleCurrent[0].End);
+        var timeRemaining = moment.duration(timeEnd.diff(timeNow));
+
+        while (scheduleCurrent.length > 0 && timeRemaining.asSeconds() < 0)
+        {
+            scheduleCurrent = scheduleCurrent.slice(1);
+            timeEnd = moment.utc(scheduleCurrent[0].End);
+            timeRemaining = moment.duration(timeEnd.diff(timeNow));
+        }
+
+        squidViewModel.scheduleCurrent(scheduleCurrent);
+
+        // page title formatting
+        var isStale = scheduleCurrent.length == 0;
+        squidFormatTimeRemaining(timeRemaining, isStale);
+
+        // xxx: timeout should be "milliseconds until the current second changes".
+        squidTimeout = setTimeout(squidRefresh, 1000);
     }
 
     function squidScheduleNextUpdate(timeExpectedUpdate, timeNow)
@@ -229,13 +239,13 @@
         <div class="squidLeftColumn">
             <div class="squidMapsHeading squidHeadingTurf">Current Turf War maps</div>
 
-            <div data-bind="foreach: mapsTurf">
+            <div data-bind="foreach: (scheduleCurrent()[0] || {}).RegularStages">
                 <div class="squidMapItem">
                 <div class="squidMapPicture">
                     <img src="images/stages/blank.png" alt=""
-                        data-bind="attr: { src: squidImageSrc($data.id), alt: squidGetName($data.id) }" />
+                        data-bind="attr: { src: squidImageSrc($data), alt: squidGetName($data) }" />
                 </div>
-                <div class="squidMapTitle" data-bind="text: squidGetName($data.id)">
+                <div class="squidMapTitle" data-bind="text: squidGetName($data)">
 
                 </div>
                 </div>
@@ -258,17 +268,30 @@
         <div class="squidRightColumn">
             <div class="squidMapsHeading squidHeadingRanked">Current Ranked maps</div>
 
-            <div class="squidMapItem">
+            <div data-bind="foreach: (scheduleCurrent()[0] || {}).RankedStages">
+                <div class="squidMapItem">
                 <div class="squidMapPicture">
-                <img src="images/stages/blank.png" alt="" />
+                    <img src="images/stages/blank.png" alt=""
+                        data-bind="attr: { src: squidImageSrc($data), alt: squidGetName($data) }" />
                 </div>
-                <div class="squidMapTitle">Unknown</div>
+                <div class="squidMapTitle" data-bind="text: squidGetName($data)">
+
+                </div>
+                </div>
             </div>
-            <div class="squidMapItem">
-                <div class="squidMapPicture">
-                <img src="images/stages/blank.png" alt="" />
+            <div data-bind="if: isSplatfest">
+                <div class="squidMapItem">
+                    <div class="squidMapPicture">
+                    <img src="images/stages/blank.png" alt="" />
+                    </div>
+                    <div class="squidMapTitle">Unknown</div>
                 </div>
-                <div class="squidMapTitle">Unknown</div>
+                <div class="squidMapItem">
+                    <div class="squidMapPicture">
+                    <img src="images/stages/blank.png" alt="" />
+                    </div>
+                    <div class="squidMapTitle">Unknown</div>
+                </div>
             </div>
         </div>
         <div class="squidMainColumn">

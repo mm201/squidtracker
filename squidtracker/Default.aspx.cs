@@ -28,7 +28,8 @@ namespace SquidTracker.Web
             StringBuilder builder = new StringBuilder();
             builder.Append("<script type=\"text/javascript\">");
 
-            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_stages ORDER BY id"), "squidStages");
+            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT id, filename, name_ja, name_en FROM squid_stages ORDER BY id"), "squidStages");
+            WriteConversionArray(builder, conn.ExecuteDataTable("SELECT id, NULL AS filename, name_ja, name_en FROM squid_modes ORDER BY id"), "squidModes");
             /*
             WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_gear_head ORDER BY filename, identifier"), "squidGearHead");
             WriteConversionArray(builder, conn.ExecuteDataTable("SELECT identifier, filename, name_ja, name_en FROM squid_gear_clothes ORDER BY filename, identifier"), "squidGearClothes");
@@ -41,7 +42,7 @@ namespace SquidTracker.Web
             return builder.ToString();
         }
 
-        private static void WriteConversionArray(StringBuilder builder, DataTable tbl, String objectName)
+        private static void WriteConversionArray(StringBuilder builder, DataTable tbl, string objectName)
         {
             builder.Append("var ");
             builder.Append(objectName);
@@ -52,13 +53,13 @@ namespace SquidTracker.Web
             foreach (DataRow row in tbl.Rows)
             {
                 if (notFirst) builder.Append(",\n");
-                WriteStringValue(builder, DatabaseExtender.Cast<String>(row["identifier"]));
+                builder.Append(row["id"]);
                 builder.Append(":{\"filename\":");
-                WriteStringValue(builder, DatabaseExtender.Cast<String>(row["filename"]));
+                WriteStringValue(builder, DatabaseExtender.Cast<string>(row["filename"]));
                 builder.Append(",\"name_ja\":");
-                WriteStringValue(builder, DatabaseExtender.Cast<String>(row["name_ja"]));
+                WriteStringValue(builder, DatabaseExtender.Cast<string>(row["name_ja"]));
                 builder.Append(",\"name_en\":");
-                WriteStringValue(builder, DatabaseExtender.Cast<String>(row["name_en"]));
+                WriteStringValue(builder, DatabaseExtender.Cast<string>(row["name_en"]));
                 builder.Append("}");
                 notFirst = true;
             }
@@ -66,7 +67,7 @@ namespace SquidTracker.Web
             builder.Append("};\n");
         }
 
-        private static void WriteStringValue(StringBuilder builder, String value)
+        private static void WriteStringValue(StringBuilder builder, string value)
         {
             if (value == null) builder.Append("null");
             else
