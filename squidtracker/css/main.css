@@ -23,12 +23,12 @@ body
 
 a
 {
-    color: #99ff33;
+    color: #ff66cc;
 }
 
 .squidHeader
 {
-    color: #99ff33;
+    color: #ff66cc;
     font-family: Paintball,Ikamodoki,'Gill Sans',sans-serif;
     font-size: 40px;
     text-align: center;
@@ -36,7 +36,7 @@ a
 
 .squidHeader a
 {
-    color: #99ff33;
+    color: #ff66cc;
     text-decoration: none;
 }
 
@@ -75,14 +75,22 @@ a
     white-space: nowrap;
 }
 
+.squidMapsMode
+{
+    text-align: center;
+    margin-bottom: 4px;
+    font-size: 16px;
+    white-space: nowrap;
+}
+
 .squidHeadingTurf
 {
-    color: #dd66ff;
+    color: #99e800;
 }
 
 .squidHeadingRanked
 {
-    color: #ff9933;
+    color: #ff5400;
 }
 
 .squidMapTitle
@@ -173,7 +181,7 @@ a
 
 .squidNav a
 {
-    color: #99ff33;
+    color: #ff66cc;
     text-decoration: none;
 }
 
